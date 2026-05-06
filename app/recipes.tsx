@@ -35,6 +35,7 @@ export default function RecipesScreen() {
     if (activeFilter === 'classic') return matches.filter((m) => m.cocktail.tags.includes('经典'));
     if (activeFilter === 'summer') return matches.filter((m) => m.cocktail.tags.includes('清爽'));
     if (activeFilter === 'party') return matches.filter((m) => m.cocktail.tags.includes('派对'));
+    if (activeFilter === 'low') return matches.filter((m) => m.cocktail.alcoholLevel === '低等');
     return matches;
   }, [activeFilter, matches]);
 

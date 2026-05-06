@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -25,12 +26,15 @@ const categories = [
   { key: 'liqueur', label: '利口酒' },
   { key: 'juice', label: '果汁' },
   { key: 'syrup', label: '糖浆' },
+  { key: 'mixer', label: '苏打/气泡' },
   { key: 'bitter', label: '苦精' },
   { key: 'garnish', label: '装饰' },
+  { key: 'other', label: '其他' },
 ];
 
 export default function CabinetScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [activeCategory, setActiveCategory] = useState('all');
   const [owned, setOwned] = useState(new Set(ownedIngredientIds));
 
@@ -106,7 +110,7 @@ export default function CabinetScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.bottomBtn}>
+      <View style={[styles.bottomBtn, { paddingBottom: insets.bottom + spacing.pageMargin }]}>
         <TouchableOpacity style={styles.cta} onPress={() => router.push('/recommend')}>
           <MaterialIcons name="auto-awesome" size={20} color={colors.background} />
           <Text style={styles.ctaText}>看看我能调什么</Text>
@@ -205,7 +209,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: spacing.pageMargin,
-    paddingBottom: 36,
     backgroundColor: 'rgba(19, 19, 19, 0.95)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.06)',

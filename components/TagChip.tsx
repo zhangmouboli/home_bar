@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, Pressable, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
@@ -12,13 +12,12 @@ interface TagChipProps {
 
 export default function TagChip({ label, active, onPress }: TagChipProps) {
   return (
-    <TouchableOpacity
+    <Pressable
       style={[styles.chip, active && styles.activeChip]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
       <Text style={[styles.text, active && styles.activeText]}>{label}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

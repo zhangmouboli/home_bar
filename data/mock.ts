@@ -14,7 +14,7 @@ export const ingredients: Ingredient[] = [
   { id: 'tonic_water', name: '汤力水', nameEn: 'Tonic Water', category: 'mixer', icon: 'bubble-chart' },
   { id: 'bitters', name: '苦精', nameEn: 'Bitters', category: 'bitter', icon: 'science' },
   { id: 'mint', name: '薄荷叶', nameEn: 'Mint', category: 'garnish', icon: 'eco' },
-  { id: 'egg_white', name: '蛋清', nameEn: 'Egg White', category: 'other', icon: 'egg' },
+  { id: 'egg_white', name: '蛋清', nameEn: 'Egg White', category: 'other', icon: 'circle' },
 ];
 
 export const ownedIngredientIds: string[] = [

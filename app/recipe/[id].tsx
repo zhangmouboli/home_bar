@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -12,6 +13,7 @@ import TagChip from '../../components/TagChip';
 
 export default function RecipeDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const cocktail = useMemo(() => cocktails.find((c) => c.id === id), [id]);
@@ -23,7 +25,7 @@ export default function RecipeDetailScreen() {
   if (!cocktail || !match) {
     return (
       <View style={styles.root}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <MaterialIcons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
@@ -40,7 +42,7 @@ export default function RecipeDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.imageWrap}>
           <Image source={{ uri: cocktail.image }} style={styles.heroImage} />
-          <View style={styles.imageOverlay}>
+          <View style={[styles.imageOverlay, { paddingTop: insets.top + spacing.sm }]}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
               <MaterialIcons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
@@ -147,7 +149,7 @@ export default function RecipeDetailScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.bottomCta}>
+      <View style={[styles.bottomCta, { paddingBottom: insets.bottom + spacing.pageMargin }]}>
         <TouchableOpacity style={styles.startBtn}>
           <MaterialIcons name="play-arrow" size={22} color={colors.background} />
           <Text style={styles.startBtnText}>开始制作</Text>
@@ -172,7 +174,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.pageMargin,
-    paddingTop: 50,
     paddingBottom: spacing.md,
   },
   imageWrap: {
@@ -191,7 +192,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingHorizontal: spacing.pageMargin,
-    paddingTop: 50,
   },
   backBtn: {
     width: 40,
@@ -353,7 +353,6 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     padding: spacing.pageMargin,
-    paddingBottom: 36,
     backgroundColor: 'rgba(19, 19, 19, 0.95)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.06)',

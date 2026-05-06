@@ -11,10 +11,10 @@ export function getCocktailMatch(
   ).length;
   const missingIngredients = cocktail.ingredients
     .filter((ci) => !ownedIds.includes(ci.ingredientId))
-    .map((ci) => ingredients.find((i) => i.id === ci.ingredientId)!)
-    .filter(Boolean);
+    .map((ci) => ingredients.find((i) => i.id === ci.ingredientId))
+    .filter((i): i is Ingredient => i !== undefined);
   const missingCount = totalRequired - ownedCount;
-  const matchPercent = Math.round((ownedCount / totalRequired) * 100);
+  const matchPercent = totalRequired > 0 ? Math.round((ownedCount / totalRequired) * 100) : 0;
 
   let status: CocktailMatch['status'];
   if (missingCount === 0) status = 'canMake';

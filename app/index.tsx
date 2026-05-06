@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
@@ -56,7 +56,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.progressBar}>
               <View
-                style={[styles.progressFill, { width: `${Math.round((canMake.length / cocktails.length) * 100)}%` }]}
+                style={[styles.progressFill, { width: `${cocktails.length > 0 ? Math.round((canMake.length / cocktails.length) * 100) : 0}%` }]}
               />
             </View>
             <TouchableOpacity style={styles.manageBtn} onPress={() => router.push('/cabinet')}>
@@ -72,20 +72,16 @@ export default function HomeScreen() {
         </View>
 
         <SectionTitle title="现在可制作" actionText="查看全部" onAction={() => router.push('/recipes')} />
-        <FlatList
-          data={canMake}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.cocktail.id}
-          contentContainerStyle={styles.horizontalList}
-          renderItem={({ item }) => (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+          {canMake.map((item) => (
             <CocktailImageCard
+              key={item.cocktail.id}
               match={item}
               variant="horizontal"
               onPress={() => router.push(`/recipe/${item.cocktail.id}`)}
             />
-          )}
-        />
+          ))}
+        </ScrollView>
 
         {missingOne.length > 0 && (
           <>

@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
-import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
+import { ownedIngredientIds, cocktails } from '../data/mock';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
 import StatCard from '../components/StatCard';
 
 export default function ProfileScreen() {
-  const router = useRouter();
   const [hideNonAlc, setHideNonAlc] = useState(false);
   const [beginnerMode, setBeginnerMode] = useState(true);
 
@@ -27,10 +26,10 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard icon="inventory-2" value={24} label="我的酒柜" />
+          <StatCard icon="inventory-2" value={ownedIngredientIds.length} label="我的酒柜" />
           <StatCard icon="favorite" value={18} label="我的收藏" />
           <StatCard icon="visibility" value={32} label="最近浏览" />
-          <StatCard icon="local-bar" value={12} label="制作记录" />
+          <StatCard icon="local-bar" value={cocktails.length} label="酒谱总数" />
         </View>
 
         <Text style={styles.sectionTitle}>偏好设置</Text>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -7,37 +8,37 @@ import { spacing } from '../theme/spacing';
 
 interface AppHeaderProps {
   title?: string;
-  onMenuPress?: () => void;
   onProfilePress?: () => void;
 }
 
 export default function AppHeader({
   title = '家庭酒吧',
-  onMenuPress,
   onProfilePress,
 }: AppHeaderProps) {
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.iconBtn} onPress={onMenuPress}>
-        <MaterialIcons name="menu" size={24} color={colors.text} />
-      </TouchableOpacity>
-      <Text style={styles.title}>{title}</Text>
-      <TouchableOpacity style={styles.iconBtn} onPress={onProfilePress}>
-        <View style={styles.avatar}>
-          <MaterialIcons name="person" size={20} color={colors.primary} />
-        </View>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView edges={['top']} style={styles.safe}>
+      <View style={styles.container}>
+        <View style={styles.iconBtn} />
+        <Text style={styles.title}>{title}</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={onProfilePress}>
+          <View style={styles.avatar}>
+            <MaterialIcons name="person" size={20} color={colors.primary} />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    backgroundColor: colors.background,
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.pageMargin,
-    paddingVertical: spacing.sm,
     height: 56,
   },
   iconBtn: {
