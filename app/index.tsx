@@ -14,6 +14,7 @@ import SectionTitle from '../components/SectionTitle';
 import TagChip from '../components/TagChip';
 import CocktailImageCard from '../components/CocktailImageCard';
 import SearchInput from '../components/SearchInput';
+import EmptyState from '../components/EmptyState';
 
 const quickTags = ['简单', '清爽', '低酒精', '派对'];
 
@@ -58,7 +59,7 @@ export default function HomeScreen() {
             searchResults.map((c) => {
               const m = getCocktailMatch(c, state.ownedIngredientIds);
               return (
-                <TouchableOpacity key={c.id} onPress={() => { setSearch(''); router.push(`/recipe/${c.id}`); }}>
+                <TouchableOpacity key={c.id} onPress={() => { setSearch(''); router.push(`/recipe/${c.id}`); }} activeOpacity={0.7}>
                   <GlassCard style={styles.searchCard}>
                     <Text style={styles.searchName}>{c.nameZh}</Text>
                     <Text style={styles.searchSub}>{c.nameEn} · {m.matchPercent}% 匹配</Text>
@@ -67,11 +68,16 @@ export default function HomeScreen() {
               );
             })
           ) : (
-            <Text style={styles.noResults}>未找到相关鸡尾酒</Text>
+            <EmptyState
+              icon="search-off"
+              message="没有找到相关鸡尾酒"
+              actionLabel="清除搜索"
+              onAction={() => setSearch('')}
+            />
           )
         ) : (
           <>
-            <TouchableOpacity onPress={() => router.push('/cabinet')}>
+            <TouchableOpacity onPress={() => router.push('/cabinet')} activeOpacity={0.7}>
               <GlassCard style={styles.cabinetCard}>
                 <View style={styles.cabinetHeader}>
                   <Text style={styles.cabinetTitle}>我的酒柜</Text>
@@ -93,7 +99,7 @@ export default function HomeScreen() {
                     style={[styles.progressFill, { width: `${cocktails.length > 0 ? Math.round((canMake.length / cocktails.length) * 100) : 0}%` }]}
                   />
                 </View>
-                <TouchableOpacity style={styles.manageBtn} onPress={() => router.push('/cabinet')}>
+                <TouchableOpacity style={styles.manageBtn} onPress={() => router.push('/cabinet')} activeOpacity={0.7}>
                   <Text style={styles.manageBtnText}>管理酒柜</Text>
                 </TouchableOpacity>
               </GlassCard>
@@ -106,16 +112,25 @@ export default function HomeScreen() {
             </View>
 
             <SectionTitle title="现在可制作" actionText="查看全部" onAction={() => router.push('/recipes')} />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-              {canMake.map((item) => (
-                <CocktailImageCard
-                  key={item.cocktail.id}
-                  match={item}
-                  variant="horizontal"
-                  onPress={() => router.push(`/recipe/${item.cocktail.id}`)}
-                />
-              ))}
-            </ScrollView>
+            {canMake.length === 0 ? (
+              <EmptyState
+                icon="local-bar"
+                message="你的酒柜还不能制作鸡尾酒"
+                actionLabel="去添加材料"
+                onAction={() => router.push('/cabinet')}
+              />
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+                {canMake.map((item) => (
+                  <CocktailImageCard
+                    key={item.cocktail.id}
+                    match={item}
+                    variant="horizontal"
+                    onPress={() => router.push(`/recipe/${item.cocktail.id}`)}
+                  />
+                ))}
+              </ScrollView>
+            )}
 
             {missingOne.length > 0 && (
               <>
@@ -124,6 +139,7 @@ export default function HomeScreen() {
                   <TouchableOpacity
                     key={m.cocktail.id}
                     onPress={() => router.push(`/recipe/${m.cocktail.id}`)}
+                    activeOpacity={0.7}
                   >
                     <GlassCard style={styles.missingCard}>
                       <View style={styles.missingRow}>
@@ -174,12 +190,6 @@ const styles = StyleSheet.create({
     ...typography.labelMd,
     color: colors.textMuted,
     marginTop: 2,
-  },
-  noResults: {
-    ...typography.bodyMd,
-    color: colors.textMuted,
-    textAlign: 'center',
-    paddingVertical: spacing.xl,
   },
   cabinetCard: {
     marginHorizontal: spacing.pageMargin,

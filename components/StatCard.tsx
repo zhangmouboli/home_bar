@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -9,15 +9,16 @@ interface StatCardProps {
   icon: string;
   value: string | number;
   label: string;
+  onPress?: () => void;
 }
 
-export default function StatCard({ icon, value, label }: StatCardProps) {
+export default function StatCard({ icon, value, label, onPress }: StatCardProps) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={onPress ? 0.7 : 1} disabled={!onPress}>
       <MaterialIcons name={icon as any} size={22} color={colors.primary} />
       <Text style={styles.value}>{value}</Text>
       <Text style={styles.label}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 

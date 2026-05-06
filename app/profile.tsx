@@ -1,18 +1,60 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
+import { cocktails } from '../data/mock';
 import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
 import StatCard from '../components/StatCard';
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { state } = useApp();
   const [hideNonAlc, setHideNonAlc] = useState(false);
   const [beginnerMode, setBeginnerMode] = useState(true);
+
+  const favoriteNames = state.favoriteCocktailIds
+    .map((id) => cocktails.find((c) => c.id === id)?.nameZh)
+    .filter(Boolean);
+
+  const recentNames = state.recentViewedCocktailIds
+    .slice(0, 5)
+    .map((id) => cocktails.find((c) => c.id === id)?.nameZh)
+    .filter(Boolean);
+
+  const madeNames = state.madeCocktailIds
+    .map((id) => cocktails.find((c) => c.id === id)?.nameZh)
+    .filter(Boolean);
+
+  const handleCabinetPress = () => router.push('/cabinet');
+
+  const handleFavoritePress = () => {
+    if (favoriteNames.length === 0) {
+      Alert.alert('我的收藏', '还没有收藏任何酒谱');
+    } else {
+      Alert.alert('我的收藏', favoriteNames.join('\n'));
+    }
+  };
+
+  const handleRecentPress = () => {
+    if (recentNames.length === 0) {
+      Alert.alert('最近浏览', '还没有浏览记录');
+    } else {
+      Alert.alert('最近浏览', recentNames.join('\n'));
+    }
+  };
+
+  const handleMadePress = () => {
+    if (madeNames.length === 0) {
+      Alert.alert('已制作', '还没有制作记录');
+    } else {
+      Alert.alert('已制作', madeNames.join('\n'));
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -27,21 +69,21 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard icon="inventory-2" value={state.ownedIngredientIds.length} label="我的酒柜" />
-          <StatCard icon="favorite" value={state.favoriteCocktailIds.length} label="我的收藏" />
-          <StatCard icon="visibility" value={state.recentViewedCocktailIds.length} label="最近浏览" />
-          <StatCard icon="local-bar" value={state.madeCocktailIds.length} label="已制作" />
+          <StatCard icon="inventory-2" value={state.ownedIngredientIds.length} label="我的酒柜" onPress={handleCabinetPress} />
+          <StatCard icon="favorite" value={state.favoriteCocktailIds.length} label="我的收藏" onPress={handleFavoritePress} />
+          <StatCard icon="visibility" value={state.recentViewedCocktailIds.length} label="最近浏览" onPress={handleRecentPress} />
+          <StatCard icon="local-bar" value={state.madeCocktailIds.length} label="已制作" onPress={handleMadePress} />
         </View>
 
         <Text style={styles.sectionTitle}>偏好设置</Text>
         <GlassCard style={styles.settingCard}>
-          <TouchableOpacity style={styles.settingRow}>
+          <TouchableOpacity style={styles.settingRow} onPress={() => Alert.alert('提示', '偏好设置将在下一版开放')} activeOpacity={0.7}>
             <MaterialIcons name="tune" size={22} color={colors.textMuted} />
             <Text style={styles.settingLabel}>喜欢的口味</Text>
             <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.settingRow}>
+          <TouchableOpacity style={styles.settingRow} onPress={() => Alert.alert('提示', '偏好设置将在下一版开放')} activeOpacity={0.7}>
             <MaterialIcons name="local-bar" size={22} color={colors.textMuted} />
             <Text style={styles.settingLabel}>酒精度偏好</Text>
             <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />
@@ -80,7 +122,7 @@ export default function ProfileScreen() {
           ].map((item, i) => (
             <React.Fragment key={item.label}>
               {i > 0 && <View style={styles.divider} />}
-              <TouchableOpacity style={styles.settingRow}>
+              <TouchableOpacity style={styles.settingRow} activeOpacity={0.7}>
                 <MaterialIcons name={item.icon as any} size={22} color={colors.textMuted} />
                 <Text style={styles.settingLabel}>{item.label}</Text>
                 <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />

@@ -12,6 +12,7 @@ import AppHeader from '../components/AppHeader';
 import IngredientItem from '../components/IngredientItem';
 import TagChip from '../components/TagChip';
 import SearchInput from '../components/SearchInput';
+import EmptyState from '../components/EmptyState';
 
 const quickAdd = [
   { id: 'vodka', name: '伏特加' },
@@ -48,9 +49,12 @@ export default function CabinetScreen() {
     }
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter(
-        (i) => i.name.toLowerCase().includes(q) || (i.nameEn && i.nameEn.toLowerCase().includes(q))
-      );
+      list = list.filter((i) => {
+        const nameMatch = i.name.toLowerCase().includes(q) || (i.nameEn && i.nameEn.toLowerCase().includes(q));
+        const categoryLabel = categoryLabels[i.category] || '';
+        const categoryMatch = categoryLabel.toLowerCase().includes(q);
+        return nameMatch || categoryMatch;
+      });
     }
     return list;
   }, [activeCategory, search]);
@@ -67,7 +71,7 @@ export default function CabinetScreen() {
         <SearchInput
           value={search}
           onChangeText={setSearch}
-          placeholder="搜索配料..."
+          placeholder="搜索材料或分类..."
         />
 
         <Text style={styles.sectionLabel}>快速添加</Text>
@@ -79,6 +83,7 @@ export default function CabinetScreen() {
                 key={item.id}
                 style={[styles.quickChip, owned && styles.quickChipActive]}
                 onPress={() => toggleIngredient(item.id)}
+                activeOpacity={0.7}
               >
                 <Text style={[styles.quickText, owned && styles.quickTextActive]}>
                   {item.name}
@@ -101,21 +106,30 @@ export default function CabinetScreen() {
         </ScrollView>
 
         <View style={styles.listSection}>
-          {filtered.map((item) => (
-            <IngredientItem
-              key={item.id}
-              name={item.name}
-              category={categoryLabels[item.category] || item.category}
-              icon={item.icon}
-              owned={isIngredientOwned(item.id)}
-              onToggle={() => toggleIngredient(item.id)}
+          {filtered.length === 0 ? (
+            <EmptyState
+              icon="search-off"
+              message="没有找到相关材料"
+              actionLabel="清除搜索"
+              onAction={() => setSearch('')}
             />
-          ))}
+          ) : (
+            filtered.map((item) => (
+              <IngredientItem
+                key={item.id}
+                name={item.name}
+                category={categoryLabels[item.category] || item.category}
+                icon={item.icon}
+                owned={isIngredientOwned(item.id)}
+                onToggle={() => toggleIngredient(item.id)}
+              />
+            ))
+          )}
         </View>
       </ScrollView>
 
       <View style={[styles.bottomBtn, { paddingBottom: insets.bottom + spacing.pageMargin }]}>
-        <TouchableOpacity style={styles.cta} onPress={() => router.push('/recommend')}>
+        <TouchableOpacity style={styles.cta} onPress={() => router.push('/recommend')} activeOpacity={0.7}>
           <MaterialIcons name="auto-awesome" size={20} color={colors.background} />
           <Text style={styles.ctaText}>看看我能调什么</Text>
         </TouchableOpacity>

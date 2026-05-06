@@ -5,13 +5,14 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { cocktails } from '../data/mock';
+import { cocktails, ingredients } from '../data/mock';
 import { getCocktailMatch } from '../utils/match';
 import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
 import TagChip from '../components/TagChip';
 import SearchInput from '../components/SearchInput';
+import EmptyState from '../components/EmptyState';
 
 const filters = [
   { key: 'all', label: '全部' },
@@ -42,12 +43,17 @@ export default function RecipesScreen() {
     else if (activeFilter === 'low') list = list.filter((m) => m.cocktail.alcoholLevel === '低等');
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter(
-        (m) =>
+      list = list.filter((m) => {
+        const nameMatch =
           m.cocktail.nameZh.toLowerCase().includes(q) ||
-          m.cocktail.nameEn.toLowerCase().includes(q) ||
-          m.cocktail.tags.some((t) => t.includes(q))
-      );
+          m.cocktail.nameEn.toLowerCase().includes(q);
+        const tagMatch = m.cocktail.tags.some((t) => t.includes(q));
+        const ingredientMatch = m.cocktail.ingredients.some((ci) => {
+          const ing = ingredients.find((i) => i.id === ci.ingredientId);
+          return ing && (ing.name.toLowerCase().includes(q) || (ing.nameEn && ing.nameEn.toLowerCase().includes(q)));
+        });
+        return nameMatch || tagMatch || ingredientMatch;
+      });
     }
     return list;
   }, [activeFilter, matches, search]);
@@ -62,7 +68,7 @@ export default function RecipesScreen() {
         <SearchInput
           value={search}
           onChangeText={setSearch}
-          placeholder="搜索鸡尾酒或配料..."
+          placeholder="搜索鸡尾酒、配料或标签..."
         />
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
@@ -76,49 +82,58 @@ export default function RecipesScreen() {
           ))}
         </ScrollView>
 
-        {filtered.map((m) => (
-          <TouchableOpacity key={m.cocktail.id} onPress={() => router.push(`/recipe/${m.cocktail.id}`)}>
-            <GlassCard style={styles.recipeCard} noPadding>
-              <Image source={{ uri: m.cocktail.image }} style={styles.recipeImage} />
-              <View style={styles.recipeInfo}>
-                <View style={styles.recipeHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.recipeName}>{m.cocktail.nameZh}</Text>
-                    <Text style={styles.recipeSub}>{m.cocktail.subtitle}</Text>
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon="search-off"
+            message="没有找到相关酒谱"
+            actionLabel="清除搜索"
+            onAction={() => setSearch('')}
+          />
+        ) : (
+          filtered.map((m) => (
+            <TouchableOpacity key={m.cocktail.id} onPress={() => router.push(`/recipe/${m.cocktail.id}`)} activeOpacity={0.7}>
+              <GlassCard style={styles.recipeCard} noPadding>
+                <Image source={{ uri: m.cocktail.image }} style={styles.recipeImage} />
+                <View style={styles.recipeInfo}>
+                  <View style={styles.recipeHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.recipeName}>{m.cocktail.nameZh}</Text>
+                      <Text style={styles.recipeSub}>{m.cocktail.subtitle}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => toggleFavorite(m.cocktail.id)} activeOpacity={0.7}>
+                      <MaterialIcons
+                        name={isCocktailFavorite(m.cocktail.id) ? 'favorite' : 'favorite-border'}
+                        size={22}
+                        color={isCocktailFavorite(m.cocktail.id) ? colors.primary : colors.textMuted}
+                      />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity onPress={() => toggleFavorite(m.cocktail.id)}>
-                    <MaterialIcons
-                      name={isCocktailFavorite(m.cocktail.id) ? 'favorite' : 'favorite-border'}
-                      size={22}
-                      color={isCocktailFavorite(m.cocktail.id) ? colors.primary : colors.textMuted}
-                    />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.recipeMeta}>
-                  <View style={styles.metaItem}>
-                    <MaterialIcons name="check-circle" size={14} color={m.status === 'canMake' ? colors.success : colors.outline} />
-                    <Text style={styles.metaText}>
-                      已拥有 {m.ownedCount}/{m.totalRequired}
-                    </Text>
-                  </View>
-                  {m.missingCount > 0 && (
+                  <View style={styles.recipeMeta}>
                     <View style={styles.metaItem}>
-                      <MaterialIcons name="remove-circle-outline" size={14} color={colors.primary} />
-                      <Text style={[styles.metaText, { color: colors.primary }]}>
-                        缺少 {m.missingIngredients.map((i) => i.name).join('、')}
+                      <MaterialIcons name="check-circle" size={14} color={m.status === 'canMake' ? colors.success : colors.outline} />
+                      <Text style={styles.metaText}>
+                        已拥有 {m.ownedCount}/{m.totalRequired}
                       </Text>
                     </View>
-                  )}
+                    {m.missingCount > 0 && (
+                      <View style={styles.metaItem}>
+                        <MaterialIcons name="remove-circle-outline" size={14} color={colors.primary} />
+                        <Text style={[styles.metaText, { color: colors.primary }]}>
+                          缺少 {m.missingIngredients.map((i) => i.name).join('、')}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.tagRow}>
+                    {m.cocktail.tags.map((t) => (
+                      <Text key={t} style={styles.tag}>{t}</Text>
+                    ))}
+                  </View>
                 </View>
-                <View style={styles.tagRow}>
-                  {m.cocktail.tags.map((t) => (
-                    <Text key={t} style={styles.tag}>{t}</Text>
-                  ))}
-                </View>
-              </View>
-            </GlassCard>
-          </TouchableOpacity>
-        ))}
+              </GlassCard>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </View>
   );

@@ -11,6 +11,7 @@ import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
 import TagChip from '../components/TagChip';
+import EmptyState from '../components/EmptyState';
 
 const tabs = [
   { key: 'canMake', label: '现在能做' },
@@ -18,9 +19,15 @@ const tabs = [
   { key: 'missingTwo', label: '只差 2 种' },
 ];
 
+const emptyMessages: Record<string, { message: string; icon: string }> = {
+  canMake: { message: '再添加几种材料，就能开始调酒', icon: 'local-bar' },
+  missingOne: { message: '暂时没有只差 1 种材料的酒谱', icon: 'search' },
+  missingTwo: { message: '暂时没有只差 2 种材料的酒谱', icon: 'search' },
+};
+
 export default function RecommendScreen() {
   const router = useRouter();
-  const { state, toggleIngredient, isIngredientOwned } = useApp();
+  const { state, addToShoppingList } = useApp();
   const [activeTab, setActiveTab] = useState('canMake');
 
   const matches = useMemo(
@@ -56,9 +63,10 @@ export default function RecommendScreen() {
   const canMakeCount = matches.filter((m) => m.status === 'canMake').length;
 
   const handleSuggestionPress = (id: string, name: string) => {
-    Alert.alert('补货建议', `是否将「${name}」加入酒柜？`, [
-      { text: '取消', style: 'cancel' },
-      { text: '加入', onPress: () => toggleIngredient(id) },
+    addToShoppingList([id]);
+    Alert.alert('已加入补货清单', `「${name}」已加入补货清单`, [
+      { text: '继续浏览', style: 'cancel' },
+      { text: '查看清单', onPress: () => router.push('/shopping-list') },
     ]);
   };
 
@@ -87,13 +95,13 @@ export default function RecommendScreen() {
         </View>
 
         {filtered.length === 0 ? (
-          <View style={styles.empty}>
-            <MaterialIcons name="local-bar" size={48} color={colors.outline} />
-            <Text style={styles.emptyText}>暂无匹配的鸡尾酒</Text>
-          </View>
+          <EmptyState
+            icon={emptyMessages[activeTab]?.icon || 'local-bar'}
+            message={emptyMessages[activeTab]?.message || '暂无匹配的鸡尾酒'}
+          />
         ) : (
           filtered.map((item) => (
-            <TouchableOpacity key={item.cocktail.id} onPress={() => router.push(`/recipe/${item.cocktail.id}`)}>
+            <TouchableOpacity key={item.cocktail.id} onPress={() => router.push(`/recipe/${item.cocktail.id}`)} activeOpacity={0.7}>
               <GlassCard style={styles.cocktailCard}>
                 <View style={styles.cardRow}>
                   <View style={styles.cardInfo}>
@@ -127,9 +135,14 @@ export default function RecommendScreen() {
 
         {suggestions.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>补货建议</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>补货建议</Text>
+              <TouchableOpacity onPress={() => router.push('/shopping-list')} activeOpacity={0.7}>
+                <Text style={styles.sectionAction}>查看清单</Text>
+              </TouchableOpacity>
+            </View>
             {suggestions.map((s) => (
-              <TouchableOpacity key={s.id} onPress={() => handleSuggestionPress(s.id, s.name)}>
+              <TouchableOpacity key={s.id} onPress={() => handleSuggestionPress(s.id, s.name)} activeOpacity={0.7}>
                 <GlassCard style={styles.suggestCard}>
                   <View style={styles.suggestRow}>
                     <MaterialIcons name="add-shopping-cart" size={20} color={colors.primary} />
@@ -231,21 +244,21 @@ const styles = StyleSheet.create({
     ...typography.headlineMd,
     color: colors.primary,
   },
-  empty: {
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.xl * 2,
-  },
-  emptyText: {
-    ...typography.bodyMd,
-    color: colors.textMuted,
-    marginTop: spacing.md,
+    paddingHorizontal: spacing.pageMargin,
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
     ...typography.headlineMd,
     color: colors.text,
-    paddingHorizontal: spacing.pageMargin,
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
+  },
+  sectionAction: {
+    ...typography.labelLg,
+    color: colors.primary,
   },
   suggestCard: {
     marginHorizontal: spacing.pageMargin,

@@ -70,6 +70,18 @@ export default function Layout() {
               href: null,
             }}
           />
+          <Tabs.Screen
+            name="make/[id]"
+            options={{
+              href: null,
+            }}
+          />
+          <Tabs.Screen
+            name="shopping-list"
+            options={{
+              href: null,
+            }}
+          />
         </Tabs>
       </View>
       </AppProvider>
