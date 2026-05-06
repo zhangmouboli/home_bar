@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { cocktails } from '../data/mock';
 import { getCocktailMatch } from '../utils/match';
 import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
@@ -13,17 +12,17 @@ import EmptyState from '../components/EmptyState';
 
 export default function MadeScreen() {
   const router = useRouter();
-  const { state, toggleFavorite, isCocktailFavorite } = useApp();
+  const { state, toggleFavorite, isCocktailFavorite, allCocktails, allIngredients } = useApp();
 
   const made = useMemo(() => {
     return state.madeCocktailIds
-      .map((id) => cocktails.find((c) => c.id === id))
+      .map((id) => allCocktails.find((c) => c.id === id))
       .filter((c): c is NonNullable<typeof c> => c !== undefined);
-  }, [state.madeCocktailIds]);
+  }, [state.madeCocktailIds, allCocktails]);
 
   const matches = useMemo(
-    () => cocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds)),
-    [state.ownedIngredientIds]
+    () => allCocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds, allIngredients)),
+    [allCocktails, state.ownedIngredientIds, allIngredients]
   );
 
   return (

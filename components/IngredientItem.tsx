@@ -14,6 +14,7 @@ interface IngredientItemProps {
   showBuy?: boolean;
   onBuy?: () => void;
   bought?: boolean;
+  onDelete?: () => void;
 }
 
 export default function IngredientItem({
@@ -25,6 +26,7 @@ export default function IngredientItem({
   showBuy,
   onBuy,
   bought,
+  onDelete,
 }: IngredientItemProps) {
   return (
     <TouchableOpacity style={styles.row} onPress={onToggle} activeOpacity={0.7}>
@@ -53,6 +55,15 @@ export default function IngredientItem({
           size={24}
           color={owned ? colors.success : colors.outline}
         />
+      )}
+      {onDelete && (
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={onDelete}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <MaterialIcons name="delete" size={20} color={colors.error} />
+        </TouchableOpacity>
       )}
     </TouchableOpacity>
   );
@@ -91,5 +102,9 @@ const styles = StyleSheet.create({
   },
   buyBtn: {
     padding: spacing.xs,
+  },
+  deleteBtn: {
+    padding: spacing.xs,
+    marginLeft: spacing.xs,
   },
 });

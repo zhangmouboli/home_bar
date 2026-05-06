@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { ingredients, categoryLabels } from '../data/mock';
+import { categoryLabels } from '../data/mock';
 import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import EmptyState from '../components/EmptyState';
@@ -14,10 +14,10 @@ import EmptyState from '../components/EmptyState';
 export default function ShoppingListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, removeFromShoppingList, clearShoppingList } = useApp();
+  const { state, removeFromShoppingList, clearShoppingList, allIngredients } = useApp();
 
   const listItems = state.shoppingListIngredientIds
-    .map((id) => ingredients.find((i) => i.id === id))
+    .map((id) => allIngredients.find((i) => i.id === id))
     .filter((i): i is NonNullable<typeof i> => i !== undefined);
 
   const handleClear = () => {

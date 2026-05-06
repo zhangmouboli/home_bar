@@ -1,10 +1,10 @@
 import { Cocktail, CocktailMatch, Ingredient } from '../types';
-import { ingredients } from '../data/mock';
 import { colors } from '../theme/colors';
 
 export function getCocktailMatch(
   cocktail: Cocktail,
-  ownedIds: string[]
+  ownedIds: string[],
+  allIngredients: Ingredient[]
 ): CocktailMatch {
   const totalRequired = cocktail.ingredients.length;
   const ownedCount = cocktail.ingredients.filter((ci) =>
@@ -12,7 +12,7 @@ export function getCocktailMatch(
   ).length;
   const missingIngredients = cocktail.ingredients
     .filter((ci) => !ownedIds.includes(ci.ingredientId))
-    .map((ci) => ingredients.find((i) => i.id === ci.ingredientId))
+    .map((ci) => allIngredients.find((i) => i.id === ci.ingredientId))
     .filter((i): i is Ingredient => i !== undefined);
   const missingCount = totalRequired - ownedCount;
   const matchPercent = totalRequired > 0 ? Math.round((ownedCount / totalRequired) * 100) : 0;

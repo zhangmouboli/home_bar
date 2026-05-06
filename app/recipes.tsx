@@ -5,7 +5,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { cocktails, ingredients } from '../data/mock';
 import { getCocktailMatch } from '../utils/match';
 import { getCocktailImageSource } from '../utils/images';
 import { useApp } from '../hooks/useApp';
@@ -26,13 +25,13 @@ const filters = [
 
 export default function RecipesScreen() {
   const router = useRouter();
-  const { state, toggleFavorite, isCocktailFavorite } = useApp();
+  const { state, toggleFavorite, isCocktailFavorite, allCocktails, allIngredients } = useApp();
   const [activeFilter, setActiveFilter] = useState('all');
   const [search, setSearch] = useState('');
 
   const matches = useMemo(
-    () => cocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds)),
-    [state.ownedIngredientIds]
+    () => allCocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds, allIngredients)),
+    [allCocktails, state.ownedIngredientIds, allIngredients]
   );
 
   const filtered = useMemo(() => {
@@ -50,14 +49,14 @@ export default function RecipesScreen() {
           m.cocktail.nameEn.toLowerCase().includes(q);
         const tagMatch = m.cocktail.tags.some((t) => t.includes(q));
         const ingredientMatch = m.cocktail.ingredients.some((ci) => {
-          const ing = ingredients.find((i) => i.id === ci.ingredientId);
+          const ing = allIngredients.find((i) => i.id === ci.ingredientId);
           return ing && (ing.name.toLowerCase().includes(q) || (ing.nameEn && ing.nameEn.toLowerCase().includes(q)));
         });
         return nameMatch || tagMatch || ingredientMatch;
       });
     }
     return list;
-  }, [activeFilter, matches, search]);
+  }, [activeFilter, matches, search, allIngredients]);
 
   return (
     <View style={styles.root}>
@@ -71,6 +70,11 @@ export default function RecipesScreen() {
           onChangeText={setSearch}
           placeholder="搜索鸡尾酒、配料或标签..."
         />
+
+        <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/custom-recipe/new')} activeOpacity={0.7}>
+          <MaterialIcons name="add" size={20} color={colors.primary} />
+          <Text style={styles.createBtnText}>+ 创建自定义酒谱</Text>
+        </TouchableOpacity>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
           {filters.map((f) => (
@@ -160,6 +164,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.pageMargin,
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
+  },
+  createBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: spacing.pageMargin,
+    marginBottom: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: spacing.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+    backgroundColor: 'rgba(242, 202, 80, 0.06)',
+  },
+  createBtnText: {
+    ...typography.labelLg,
+    color: colors.primary,
+    marginLeft: spacing.xs,
   },
   filterScroll: {
     marginBottom: spacing.lg,

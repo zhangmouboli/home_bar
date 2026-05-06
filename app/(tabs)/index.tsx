@@ -5,7 +5,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
-import { cocktails } from '../../data/mock';
 import { getCocktailMatch } from '../../utils/match';
 import { useApp } from '../../hooks/useApp';
 import AppHeader from '../../components/AppHeader';
@@ -20,12 +19,12 @@ const quickTags = ['简单', '清爽', '低酒精', '派对'];
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { state } = useApp();
+  const { state, allCocktails, allIngredients } = useApp();
   const [search, setSearch] = useState('');
 
   const matches = useMemo(
-    () => cocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds)),
-    [state.ownedIngredientIds]
+    () => allCocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds, allIngredients)),
+    [allCocktails, state.ownedIngredientIds, allIngredients]
   );
 
   const canMake = matches.filter((m) => m.status === 'canMake');
@@ -34,13 +33,13 @@ export default function HomeScreen() {
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
     const q = search.trim().toLowerCase();
-    return cocktails.filter(
+    return allCocktails.filter(
       (c) =>
         c.nameZh.toLowerCase().includes(q) ||
         c.nameEn.toLowerCase().includes(q) ||
         c.tags.some((t) => t.includes(q))
     );
-  }, [search]);
+  }, [search, allCocktails]);
 
   return (
     <View style={styles.root}>
@@ -57,7 +56,7 @@ export default function HomeScreen() {
         {search.trim() ? (
           searchResults.length > 0 ? (
             searchResults.map((c) => {
-              const m = getCocktailMatch(c, state.ownedIngredientIds);
+              const m = getCocktailMatch(c, state.ownedIngredientIds, allIngredients);
               return (
                 <TouchableOpacity key={c.id} onPress={() => { setSearch(''); router.push(`/recipe/${c.id}`); }} activeOpacity={0.7}>
                   <GlassCard style={styles.searchCard}>
@@ -96,7 +95,7 @@ export default function HomeScreen() {
                 </View>
                 <View style={styles.progressBar}>
                   <View
-                    style={[styles.progressFill, { width: `${cocktails.length > 0 ? Math.round((canMake.length / cocktails.length) * 100) : 0}%` }]}
+                    style={[styles.progressFill, { width: `${allCocktails.length > 0 ? Math.round((canMake.length / allCocktails.length) * 100) : 0}%` }]}
                   />
                 </View>
                 <TouchableOpacity style={styles.manageBtn} onPress={() => router.push('/cabinet')} activeOpacity={0.7}>

@@ -6,7 +6,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
-import { cocktails, ingredients } from '../../data/mock';
 import { useApp } from '../../hooks/useApp';
 import GlassCard from '../../components/GlassCard';
 
@@ -14,10 +13,10 @@ export default function MakeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { addMadeCocktail } = useApp();
+  const { addMadeCocktail, allCocktails, allIngredients } = useApp();
   const [step, setStep] = useState(0);
 
-  const cocktail = useMemo(() => cocktails.find((c) => c.id === id), [id]);
+  const cocktail = useMemo(() => allCocktails.find((c) => c.id === id), [id, allCocktails]);
 
   useEffect(() => {
     setStep(0);
@@ -102,7 +101,7 @@ export default function MakeScreen() {
 
         <Text style={styles.sectionTitle}>所需材料</Text>
         {cocktail.ingredients.map((ci) => {
-          const ing = ingredients.find((i) => i.id === ci.ingredientId);
+          const ing = allIngredients.find((i) => i.id === ci.ingredientId);
           return (
             <View key={ci.ingredientId} style={styles.ingredientRow}>
               <MaterialIcons name="check-circle" size={20} color={colors.success} />

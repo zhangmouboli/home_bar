@@ -1,18 +1,19 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
-import { ingredients, categoryLabels } from '../../data/mock';
+import { categoryLabels } from '../../data/mock';
 import { useApp } from '../../hooks/useApp';
 import AppHeader from '../../components/AppHeader';
 import IngredientItem from '../../components/IngredientItem';
 import TagChip from '../../components/TagChip';
 import SearchInput from '../../components/SearchInput';
 import EmptyState from '../../components/EmptyState';
+import AddIngredientModal from '../../components/AddIngredientModal';
 
 const quickAdd = [
   { id: 'vodka', name: '伏特加' },
@@ -38,12 +39,20 @@ const categories = [
 export default function CabinetScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, toggleIngredient, isIngredientOwned } = useApp();
+  const { state, toggleIngredient, isIngredientOwned, allIngredients, addCustomIngredient, removeCustomIngredient } = useApp();
   const [activeCategory, setActiveCategory] = useState('all');
   const [search, setSearch] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const handleAddIngredient = (input: { name: string; nameEn?: string; category: import('../../types').IngredientCategory }) => {
+    const id = `custom-ingredient-${Date.now()}`;
+    addCustomIngredient({ id, name: input.name, nameEn: input.nameEn, category: input.category, icon: 'local-bar' });
+    toggleIngredient(id);
+    setShowAddModal(false);
+  };
 
   const filtered = useMemo(() => {
-    let list = ingredients;
+    let list = allIngredients;
     if (activeCategory !== 'all') {
       list = list.filter((i) => i.category === activeCategory);
     }
@@ -57,7 +66,7 @@ export default function CabinetScreen() {
       });
     }
     return list;
-  }, [activeCategory, search]);
+  }, [activeCategory, search, allIngredients]);
 
   return (
     <View style={styles.root}>
@@ -73,6 +82,11 @@ export default function CabinetScreen() {
           onChangeText={setSearch}
           placeholder="搜索材料或分类..."
         />
+
+        <TouchableOpacity style={styles.addBtn} onPress={() => setShowAddModal(true)} activeOpacity={0.7}>
+          <MaterialIcons name="add" size={20} color={colors.primary} />
+          <Text style={styles.addBtnText}>添加自定义材料</Text>
+        </TouchableOpacity>
 
         <Text style={styles.sectionLabel}>快速添加</Text>
         <View style={styles.quickRow}>
@@ -122,6 +136,12 @@ export default function CabinetScreen() {
                 icon={item.icon}
                 owned={isIngredientOwned(item.id)}
                 onToggle={() => toggleIngredient(item.id)}
+                onDelete={item.id.startsWith('custom-ingredient-') ? () => {
+                  Alert.alert('删除材料', `确定要删除「${item.name}」吗？`, [
+                    { text: '取消', style: 'cancel' },
+                    { text: '删除', style: 'destructive', onPress: () => removeCustomIngredient(item.id) },
+                  ]);
+                } : undefined}
               />
             ))
           )}
@@ -134,6 +154,12 @@ export default function CabinetScreen() {
           <Text style={styles.ctaText}>看看我能调什么</Text>
         </TouchableOpacity>
       </View>
+
+      <AddIngredientModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddIngredient}
+      />
     </View>
   );
 }
@@ -160,6 +186,24 @@ const styles = StyleSheet.create({
   count: {
     ...typography.labelLg,
     color: colors.primary,
+  },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: spacing.pageMargin,
+    marginBottom: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: spacing.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+    backgroundColor: 'rgba(242, 202, 80, 0.06)',
+  },
+  addBtnText: {
+    ...typography.labelLg,
+    color: colors.primary,
+    marginLeft: spacing.xs,
   },
   sectionLabel: {
     ...typography.labelLg,

@@ -5,7 +5,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
-import { cocktails, ingredients } from '../../data/mock';
 import { getCocktailMatch } from '../../utils/match';
 import { useApp } from '../../hooks/useApp';
 import AppHeader from '../../components/AppHeader';
@@ -27,12 +26,12 @@ const emptyMessages: Record<string, { message: string; icon: string }> = {
 
 export default function RecommendScreen() {
   const router = useRouter();
-  const { state, addToShoppingList } = useApp();
+  const { state, addToShoppingList, allCocktails, allIngredients } = useApp();
   const [activeTab, setActiveTab] = useState('canMake');
 
   const matches = useMemo(
-    () => cocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds)),
-    [state.ownedIngredientIds]
+    () => allCocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds, allIngredients)),
+    [allCocktails, state.ownedIngredientIds, allIngredients]
   );
 
   const filtered = useMemo(() => {
@@ -55,10 +54,10 @@ export default function RecommendScreen() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 3)
       .map(({ id, count }) => {
-        const ing = ingredients.find((i) => i.id === id);
+        const ing = allIngredients.find((i) => i.id === id);
         return { id, name: ing?.name || id, count };
       });
-  }, [matches]);
+  }, [matches, allIngredients]);
 
   const canMakeCount = matches.filter((m) => m.status === 'canMake').length;
 

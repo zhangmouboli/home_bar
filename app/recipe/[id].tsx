@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +6,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
-import { cocktails, ingredients } from '../../data/mock';
 import { getCocktailMatch } from '../../utils/match';
 import { getCocktailImageSource } from '../../utils/images';
 import { useApp } from '../../hooks/useApp';
@@ -17,16 +16,20 @@ export default function RecipeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { state, toggleFavorite, isCocktailFavorite, addRecentViewed, addToShoppingList, isIngredientOwned, isInShoppingList } = useApp();
+  const { state, toggleFavorite, isCocktailFavorite, addRecentViewed, addToShoppingList, isIngredientOwned, isInShoppingList, allCocktails, allIngredients, removeCustomCocktail } = useApp();
 
-  const cocktail = useMemo(() => cocktails.find((c) => c.id === id), [id]);
+  const cocktail = useMemo(() => allCocktails.find((c) => c.id === id), [id, allCocktails]);
   const match = useMemo(
-    () => (cocktail ? getCocktailMatch(cocktail, state.ownedIngredientIds) : null),
-    [cocktail, state.ownedIngredientIds]
+    () => (cocktail ? getCocktailMatch(cocktail, state.ownedIngredientIds, allIngredients) : null),
+    [cocktail, state.ownedIngredientIds, allIngredients]
   );
 
+  const recordedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (id) addRecentViewed(id);
+    if (id && recordedRef.current !== id) {
+      recordedRef.current = id;
+      addRecentViewed(id);
+    }
   }, [id, addRecentViewed]);
 
   if (!cocktail || !match) {
@@ -48,6 +51,14 @@ export default function RecipeDetailScreen() {
   const missingCount = match.missingCount;
   const canMake = missingCount === 0;
   const imageSource = getCocktailImageSource(cocktail.id);
+  const isCustom = cocktail.id.startsWith('custom-cocktail-');
+
+  const handleDelete = () => {
+    Alert.alert('删除酒谱', `确定要删除「${cocktail.nameZh}」吗？`, [
+      { text: '取消', style: 'cancel' },
+      { text: '删除', style: 'destructive', onPress: () => { removeCustomCocktail(cocktail.id); router.back(); } },
+    ]);
+  };
 
   const handleAddSingle = (ingredientId: string, ingredientName: string) => {
     if (isInShoppingList(ingredientId)) {
@@ -131,7 +142,7 @@ export default function RecipeDetailScreen() {
 
           <Text style={styles.sectionTitle}>所需材料</Text>
           {cocktail.ingredients.map((ci) => {
-            const ing = ingredients.find((i) => i.id === ci.ingredientId);
+            const ing = allIngredients.find((i) => i.id === ci.ingredientId);
             const owned = isIngredientOwned(ci.ingredientId);
             return (
               <View key={ci.ingredientId} style={styles.ingredientRow}>
@@ -203,6 +214,11 @@ export default function RecipeDetailScreen() {
         <TouchableOpacity style={styles.favBtn} onPress={() => toggleFavorite(cocktail.id)}>
           <MaterialIcons name={isFav ? 'favorite' : 'favorite-border'} size={24} color={colors.primary} />
         </TouchableOpacity>
+        {isCustom && (
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+            <MaterialIcons name="delete" size={24} color={colors.error} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -436,6 +452,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.primary,
+  },
+  deleteBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: spacing.borderRadius.lg,
+    backgroundColor: 'rgba(255, 180, 171, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.error,
   },
   empty: {
     flex: 1,
