@@ -12,6 +12,8 @@ interface IngredientItemProps {
   icon?: string;
   onToggle?: () => void;
   showBuy?: boolean;
+  onBuy?: () => void;
+  bought?: boolean;
 }
 
 export default function IngredientItem({
@@ -21,6 +23,8 @@ export default function IngredientItem({
   icon = 'local-bar',
   onToggle,
   showBuy,
+  onBuy,
+  bought,
 }: IngredientItemProps) {
   return (
     <TouchableOpacity style={styles.row} onPress={onToggle} activeOpacity={0.7}>
@@ -32,8 +36,16 @@ export default function IngredientItem({
         <Text style={styles.category}>{category}</Text>
       </View>
       {showBuy ? (
-        <TouchableOpacity style={styles.buyBtn}>
-          <MaterialIcons name="shopping-cart" size={20} color={colors.primary} />
+        <TouchableOpacity
+          style={styles.buyBtn}
+          onPress={onBuy}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <MaterialIcons
+            name={bought ? 'check-circle' : 'add-shopping-cart'}
+            size={22}
+            color={colors.primary}
+          />
         </TouchableOpacity>
       ) : (
         <MaterialIcons

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
@@ -9,6 +9,8 @@ import { useApp } from '../../hooks/useApp';
 import AppHeader from '../../components/AppHeader';
 import GlassCard from '../../components/GlassCard';
 import StatCard from '../../components/StatCard';
+
+const STAT_CARD_WIDTH = (Dimensions.get('window').width - spacing.pageMargin * 2 - spacing.sm) / 2;
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -29,10 +31,10 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard icon="inventory-2" value={state.ownedIngredientIds.length} label="我的酒柜" onPress={() => router.push('/cabinet')} />
-          <StatCard icon="favorite" value={state.favoriteCocktailIds.length} label="我的收藏" onPress={() => router.push('/favorites')} />
-          <StatCard icon="visibility" value={state.recentViewedCocktailIds.length} label="最近浏览" onPress={() => router.push('/recent')} />
-          <StatCard icon="local-bar" value={state.madeCocktailIds.length} label="已制作" onPress={() => router.push('/made')} />
+          <StatCard icon="inventory-2" value={state.ownedIngredientIds.length} label="我的酒柜" onPress={() => router.push('/cabinet')} cardWidth={STAT_CARD_WIDTH} />
+          <StatCard icon="favorite" value={state.favoriteCocktailIds.length} label="我的收藏" onPress={() => router.push('/favorites')} cardWidth={STAT_CARD_WIDTH} />
+          <StatCard icon="visibility" value={state.recentViewedCocktailIds.length} label="最近浏览" onPress={() => router.push('/recent')} cardWidth={STAT_CARD_WIDTH} />
+          <StatCard icon="local-bar" value={state.madeCocktailIds.length} label="已制作" onPress={() => router.push('/made')} cardWidth={STAT_CARD_WIDTH} />
         </View>
 
         <Text style={styles.sectionTitle}>快捷入口</Text>
@@ -163,6 +165,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.pageMargin,
     gap: spacing.sm,
     marginBottom: spacing.lg,
+    justifyContent: 'space-between',
   },
   sectionTitle: {
     ...typography.headlineMd,

@@ -27,7 +27,7 @@ export default function RecipeDetailScreen() {
 
   useEffect(() => {
     if (id) addRecentViewed(id);
-  }, [id]);
+  }, [id, addRecentViewed]);
 
   if (!cocktail || !match) {
     return (

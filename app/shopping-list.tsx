@@ -27,7 +27,7 @@ export default function ShoppingListScreen() {
     ]);
   };
 
-  const handleRemove = (id: string, name: string) => {
+  const handleRemove = (id: string) => {
     removeFromShoppingList(id);
   };
 
@@ -63,7 +63,7 @@ export default function ShoppingListScreen() {
                 <Text style={styles.itemCategory}>{categoryLabels[item.category] || item.category}</Text>
               </View>
               <TouchableOpacity
-                onPress={() => handleRemove(item.id, item.name)}
+                onPress={() => handleRemove(item.id)}
                 style={styles.removeBtn}
                 activeOpacity={0.7}
               >

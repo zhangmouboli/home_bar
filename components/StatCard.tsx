@@ -10,11 +10,12 @@ interface StatCardProps {
   value: string | number;
   label: string;
   onPress?: () => void;
+  cardWidth?: number;
 }
 
-export default function StatCard({ icon, value, label, onPress }: StatCardProps) {
+export default function StatCard({ icon, value, label, onPress, cardWidth }: StatCardProps) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={onPress ? 0.7 : 1} disabled={!onPress}>
+    <TouchableOpacity style={[styles.card, cardWidth ? { flex: 0, width: cardWidth } : undefined]} onPress={onPress} activeOpacity={onPress ? 0.7 : 1} disabled={!onPress}>
       <MaterialIcons name={icon as any} size={22} color={colors.primary} />
       <Text style={styles.value}>{value}</Text>
       <Text style={styles.label}>{label}</Text>
