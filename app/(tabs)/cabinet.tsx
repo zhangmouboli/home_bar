@@ -3,16 +3,16 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
-import { spacing } from '../theme/spacing';
-import { ingredients, categoryLabels } from '../data/mock';
-import { useApp } from '../hooks/useApp';
-import AppHeader from '../components/AppHeader';
-import IngredientItem from '../components/IngredientItem';
-import TagChip from '../components/TagChip';
-import SearchInput from '../components/SearchInput';
-import EmptyState from '../components/EmptyState';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
+import { spacing } from '../../theme/spacing';
+import { ingredients, categoryLabels } from '../../data/mock';
+import { useApp } from '../../hooks/useApp';
+import AppHeader from '../../components/AppHeader';
+import IngredientItem from '../../components/IngredientItem';
+import TagChip from '../../components/TagChip';
+import SearchInput from '../../components/SearchInput';
+import EmptyState from '../../components/EmptyState';
 
 const quickAdd = [
   { id: 'vodka', name: '伏特加' },

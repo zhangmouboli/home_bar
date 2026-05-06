@@ -2,16 +2,16 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
-import { spacing } from '../theme/spacing';
-import { cocktails, ingredients } from '../data/mock';
-import { getCocktailMatch } from '../utils/match';
-import { useApp } from '../hooks/useApp';
-import AppHeader from '../components/AppHeader';
-import GlassCard from '../components/GlassCard';
-import TagChip from '../components/TagChip';
-import EmptyState from '../components/EmptyState';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
+import { spacing } from '../../theme/spacing';
+import { cocktails, ingredients } from '../../data/mock';
+import { getCocktailMatch } from '../../utils/match';
+import { useApp } from '../../hooks/useApp';
+import AppHeader from '../../components/AppHeader';
+import GlassCard from '../../components/GlassCard';
+import TagChip from '../../components/TagChip';
+import EmptyState from '../../components/EmptyState';
 
 const tabs = [
   { key: 'canMake', label: '现在能做' },

@@ -26,7 +26,6 @@ export interface Cocktail {
   nameZh: string;
   nameEn: string;
   subtitle: string;
-  image?: string;
   tags: string[];
   difficulty: string;
   timeMinutes: number;

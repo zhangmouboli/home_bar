@@ -1,60 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
-import { spacing } from '../theme/spacing';
-import { cocktails } from '../data/mock';
-import { useApp } from '../hooks/useApp';
-import AppHeader from '../components/AppHeader';
-import GlassCard from '../components/GlassCard';
-import StatCard from '../components/StatCard';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
+import { spacing } from '../../theme/spacing';
+import { useApp } from '../../hooks/useApp';
+import AppHeader from '../../components/AppHeader';
+import GlassCard from '../../components/GlassCard';
+import StatCard from '../../components/StatCard';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { state } = useApp();
   const [hideNonAlc, setHideNonAlc] = useState(false);
   const [beginnerMode, setBeginnerMode] = useState(true);
-
-  const favoriteNames = state.favoriteCocktailIds
-    .map((id) => cocktails.find((c) => c.id === id)?.nameZh)
-    .filter(Boolean);
-
-  const recentNames = state.recentViewedCocktailIds
-    .slice(0, 5)
-    .map((id) => cocktails.find((c) => c.id === id)?.nameZh)
-    .filter(Boolean);
-
-  const madeNames = state.madeCocktailIds
-    .map((id) => cocktails.find((c) => c.id === id)?.nameZh)
-    .filter(Boolean);
-
-  const handleCabinetPress = () => router.push('/cabinet');
-
-  const handleFavoritePress = () => {
-    if (favoriteNames.length === 0) {
-      Alert.alert('我的收藏', '还没有收藏任何酒谱');
-    } else {
-      Alert.alert('我的收藏', favoriteNames.join('\n'));
-    }
-  };
-
-  const handleRecentPress = () => {
-    if (recentNames.length === 0) {
-      Alert.alert('最近浏览', '还没有浏览记录');
-    } else {
-      Alert.alert('最近浏览', recentNames.join('\n'));
-    }
-  };
-
-  const handleMadePress = () => {
-    if (madeNames.length === 0) {
-      Alert.alert('已制作', '还没有制作记录');
-    } else {
-      Alert.alert('已制作', madeNames.join('\n'));
-    }
-  };
 
   return (
     <View style={styles.root}>
@@ -69,24 +29,52 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard icon="inventory-2" value={state.ownedIngredientIds.length} label="我的酒柜" onPress={handleCabinetPress} />
-          <StatCard icon="favorite" value={state.favoriteCocktailIds.length} label="我的收藏" onPress={handleFavoritePress} />
-          <StatCard icon="visibility" value={state.recentViewedCocktailIds.length} label="最近浏览" onPress={handleRecentPress} />
-          <StatCard icon="local-bar" value={state.madeCocktailIds.length} label="已制作" onPress={handleMadePress} />
+          <StatCard icon="inventory-2" value={state.ownedIngredientIds.length} label="我的酒柜" onPress={() => router.push('/cabinet')} />
+          <StatCard icon="favorite" value={state.favoriteCocktailIds.length} label="我的收藏" onPress={() => router.push('/favorites')} />
+          <StatCard icon="visibility" value={state.recentViewedCocktailIds.length} label="最近浏览" onPress={() => router.push('/recent')} />
+          <StatCard icon="local-bar" value={state.madeCocktailIds.length} label="已制作" onPress={() => router.push('/made')} />
         </View>
+
+        <Text style={styles.sectionTitle}>快捷入口</Text>
+        <GlassCard style={styles.settingCard}>
+          <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/shopping-list')} activeOpacity={0.7}>
+            <MaterialIcons name="shopping-cart" size={22} color={colors.textMuted} />
+            <Text style={styles.settingLabel}>补货清单</Text>
+            <View style={styles.badgeRow}>
+              {state.shoppingListIngredientIds.length > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{state.shoppingListIngredientIds.length}</Text>
+                </View>
+              )}
+              <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />
+            </View>
+          </TouchableOpacity>
+        </GlassCard>
 
         <Text style={styles.sectionTitle}>偏好设置</Text>
         <GlassCard style={styles.settingCard}>
-          <TouchableOpacity style={styles.settingRow} onPress={() => Alert.alert('提示', '偏好设置将在下一版开放')} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/preferences/flavors')} activeOpacity={0.7}>
             <MaterialIcons name="tune" size={22} color={colors.textMuted} />
             <Text style={styles.settingLabel}>喜欢的口味</Text>
-            <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />
+            <View style={styles.badgeRow}>
+              {state.preferredFlavorTags.length > 0 && (
+                <Text style={styles.preferenceHint}>{state.preferredFlavorTags.length} 项</Text>
+              )}
+              <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />
+            </View>
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.settingRow} onPress={() => Alert.alert('提示', '偏好设置将在下一版开放')} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/preferences/alcohol')} activeOpacity={0.7}>
             <MaterialIcons name="local-bar" size={22} color={colors.textMuted} />
             <Text style={styles.settingLabel}>酒精度偏好</Text>
-            <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />
+            <View style={styles.badgeRow}>
+              {state.preferredAlcoholLevel !== 'any' && (
+                <Text style={styles.preferenceHint}>
+                  {state.preferredAlcoholLevel === 'low' ? '低酒精' : state.preferredAlcoholLevel === 'medium' ? '中等' : '偏高'}
+                </Text>
+              )}
+              <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />
+            </View>
           </TouchableOpacity>
           <View style={styles.divider} />
           <View style={styles.settingRow}>
@@ -131,7 +119,7 @@ export default function ProfileScreen() {
           ))}
         </GlassCard>
 
-        <Text style={styles.version}>v2.0.0</Text>
+        <Text style={styles.version}>v3.1.0</Text>
       </ScrollView>
     </View>
   );
@@ -197,6 +185,30 @@ const styles = StyleSheet.create({
     color: colors.text,
     flex: 1,
     marginLeft: spacing.md,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  badge: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+    marginRight: spacing.xs,
+  },
+  badgeText: {
+    ...typography.labelSm,
+    color: colors.background,
+    fontWeight: '700',
+  },
+  preferenceHint: {
+    ...typography.labelMd,
+    color: colors.primary,
+    marginRight: spacing.xs,
   },
   divider: {
     height: 1,

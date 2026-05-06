@@ -33,7 +33,7 @@ export default function ShoppingListScreen() {
 
   return (
     <View style={styles.root}>
-      <AppHeader />
+      <AppHeader showBack fallbackRoute="/profile" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>补货清单</Text>

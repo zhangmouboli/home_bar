@@ -6,7 +6,7 @@ import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
 import { CocktailMatch } from '../types';
-import TagChip from './TagChip';
+import { getCocktailImageSource } from '../utils/images';
 
 interface CocktailImageCardProps {
   match: CocktailMatch;
@@ -18,6 +18,7 @@ const CARD_WIDTH = (Dimensions.get('window').width - spacing.pageMargin * 2 - sp
 
 export default function CocktailImageCard({ match, variant = 'full', onPress }: CocktailImageCardProps) {
   const { cocktail, matchPercent, status, missingIngredients } = match;
+  const imageSource = getCocktailImageSource(cocktail.id);
 
   const statusColor =
     status === 'canMake' ? colors.success : status === 'missingOne' ? colors.primary : colors.outlineLight;
@@ -25,7 +26,7 @@ export default function CocktailImageCard({ match, variant = 'full', onPress }: 
   if (variant === 'horizontal') {
     return (
       <TouchableOpacity style={styles.horizontalCard} onPress={onPress} activeOpacity={0.85}>
-        <Image source={{ uri: cocktail.image }} style={styles.horizontalImage} />
+        <Image source={imageSource} style={styles.horizontalImage} />
         <View style={styles.horizontalInfo}>
           <Text style={styles.horizontalName}>{cocktail.nameZh}</Text>
           <Text style={styles.horizontalSub}>{cocktail.nameEn}</Text>
@@ -51,7 +52,7 @@ export default function CocktailImageCard({ match, variant = 'full', onPress }: 
       onPress={onPress}
       activeOpacity={0.85}
     >
-      <Image source={{ uri: cocktail.image }} style={[styles.image, variant === 'compact' && styles.compactImage]} />
+      <Image source={imageSource} style={[styles.image, variant === 'compact' && styles.compactImage]} />
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.85)']}
         style={styles.gradient}

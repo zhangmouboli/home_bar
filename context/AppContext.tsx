@@ -8,7 +8,11 @@ const STORAGE_KEYS = {
   recent: '@homebar_recent',
   made: '@homebar_made',
   shopping: '@homebar_shopping',
+  flavors: '@homebar_flavors',
+  alcohol: '@homebar_alcohol',
 };
+
+type AlcoholLevel = 'low' | 'medium' | 'high' | 'any';
 
 interface AppState {
   ownedIngredientIds: string[];
@@ -16,6 +20,8 @@ interface AppState {
   recentViewedCocktailIds: string[];
   madeCocktailIds: string[];
   shoppingListIngredientIds: string[];
+  preferredFlavorTags: string[];
+  preferredAlcoholLevel: AlcoholLevel;
   isLoaded: boolean;
 }
 
@@ -27,7 +33,9 @@ type Action =
   | { type: 'ADD_MADE_COCKTAIL'; payload: string }
   | { type: 'ADD_TO_SHOPPING_LIST'; payload: string[] }
   | { type: 'REMOVE_FROM_SHOPPING_LIST'; payload: string }
-  | { type: 'CLEAR_SHOPPING_LIST' };
+  | { type: 'CLEAR_SHOPPING_LIST' }
+  | { type: 'SET_PREFERRED_FLAVOR_TAGS'; payload: string[] }
+  | { type: 'SET_PREFERRED_ALCOHOL_LEVEL'; payload: AlcoholLevel };
 
 const initialState: AppState = {
   ownedIngredientIds: defaultOwned,
@@ -35,6 +43,8 @@ const initialState: AppState = {
   recentViewedCocktailIds: [],
   madeCocktailIds: [],
   shoppingListIngredientIds: [],
+  preferredFlavorTags: [],
+  preferredAlcoholLevel: 'any',
   isLoaded: false,
 };
 
@@ -96,6 +106,10 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'CLEAR_SHOPPING_LIST':
       return { ...state, shoppingListIngredientIds: [] };
+    case 'SET_PREFERRED_FLAVOR_TAGS':
+      return { ...state, preferredFlavorTags: action.payload };
+    case 'SET_PREFERRED_ALCOHOL_LEVEL':
+      return { ...state, preferredAlcoholLevel: action.payload };
     default:
       return state;
   }
@@ -111,6 +125,8 @@ interface AppContextValue {
   addToShoppingList: (ingredientIds: string[]) => void;
   removeFromShoppingList: (ingredientId: string) => void;
   clearShoppingList: () => void;
+  setPreferredFlavorTags: (tags: string[]) => void;
+  setPreferredAlcoholLevel: (level: AlcoholLevel) => void;
   isInShoppingList: (ingredientId: string) => boolean;
   isIngredientOwned: (id: string) => boolean;
   isCocktailFavorite: (id: string) => boolean;
@@ -126,12 +142,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [owned, favorites, recent, made, shopping] = await Promise.all([
+        const [owned, favorites, recent, made, shopping, flavors, alcohol] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.owned),
           AsyncStorage.getItem(STORAGE_KEYS.favorites),
           AsyncStorage.getItem(STORAGE_KEYS.recent),
           AsyncStorage.getItem(STORAGE_KEYS.made),
           AsyncStorage.getItem(STORAGE_KEYS.shopping),
+          AsyncStorage.getItem(STORAGE_KEYS.flavors),
+          AsyncStorage.getItem(STORAGE_KEYS.alcohol),
         ]);
         dispatch({
           type: 'LOAD_STATE',
@@ -141,6 +159,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             recentViewedCocktailIds: recent ? JSON.parse(recent) : [],
             madeCocktailIds: made ? JSON.parse(made) : [],
             shoppingListIngredientIds: shopping ? JSON.parse(shopping) : [],
+            preferredFlavorTags: flavors ? JSON.parse(flavors) : [],
+            preferredAlcoholLevel: alcohol ? JSON.parse(alcohol) : 'any',
           },
         });
       } catch {
@@ -160,12 +180,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         AsyncStorage.setItem(STORAGE_KEYS.recent, JSON.stringify(state.recentViewedCocktailIds)),
         AsyncStorage.setItem(STORAGE_KEYS.made, JSON.stringify(state.madeCocktailIds)),
         AsyncStorage.setItem(STORAGE_KEYS.shopping, JSON.stringify(state.shoppingListIngredientIds)),
+        AsyncStorage.setItem(STORAGE_KEYS.flavors, JSON.stringify(state.preferredFlavorTags)),
+        AsyncStorage.setItem(STORAGE_KEYS.alcohol, JSON.stringify(state.preferredAlcoholLevel)),
       ]);
     }, 300);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [state.ownedIngredientIds, state.favoriteCocktailIds, state.recentViewedCocktailIds, state.madeCocktailIds, state.shoppingListIngredientIds, state.isLoaded]);
+  }, [state.ownedIngredientIds, state.favoriteCocktailIds, state.recentViewedCocktailIds, state.madeCocktailIds, state.shoppingListIngredientIds, state.preferredFlavorTags, state.preferredAlcoholLevel, state.isLoaded]);
 
   const toggleIngredient = (id: string) => dispatch({ type: 'TOGGLE_INGREDIENT', payload: id });
   const toggleFavorite = (id: string) => dispatch({ type: 'TOGGLE_FAVORITE', payload: id });
@@ -174,6 +196,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addToShoppingList = (ids: string[]) => dispatch({ type: 'ADD_TO_SHOPPING_LIST', payload: ids });
   const removeFromShoppingList = (id: string) => dispatch({ type: 'REMOVE_FROM_SHOPPING_LIST', payload: id });
   const clearShoppingList = () => dispatch({ type: 'CLEAR_SHOPPING_LIST' });
+  const setPreferredFlavorTags = (tags: string[]) => dispatch({ type: 'SET_PREFERRED_FLAVOR_TAGS', payload: tags });
+  const setPreferredAlcoholLevel = (level: AlcoholLevel) => dispatch({ type: 'SET_PREFERRED_ALCOHOL_LEVEL', payload: level });
   const isInShoppingList = (id: string) => state.shoppingListIngredientIds.includes(id);
   const isIngredientOwned = (id: string) => state.ownedIngredientIds.includes(id);
   const isCocktailFavorite = (id: string) => state.favoriteCocktailIds.includes(id);
@@ -190,6 +214,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addToShoppingList,
         removeFromShoppingList,
         clearShoppingList,
+        setPreferredFlavorTags,
+        setPreferredAlcoholLevel,
         isInShoppingList,
         isIngredientOwned,
         isCocktailFavorite,

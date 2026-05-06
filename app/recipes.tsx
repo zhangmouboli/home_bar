@@ -7,6 +7,7 @@ import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
 import { cocktails, ingredients } from '../data/mock';
 import { getCocktailMatch } from '../utils/match';
+import { getCocktailImageSource } from '../utils/images';
 import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
@@ -60,7 +61,7 @@ export default function RecipesScreen() {
 
   return (
     <View style={styles.root}>
-      <AppHeader />
+      <AppHeader showBack fallbackRoute="/" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>酒谱库</Text>
         <Text style={styles.subtitle}>探索并调制您的下一款招牌饮品。</Text>
@@ -93,7 +94,7 @@ export default function RecipesScreen() {
           filtered.map((m) => (
             <TouchableOpacity key={m.cocktail.id} onPress={() => router.push(`/recipe/${m.cocktail.id}`)} activeOpacity={0.7}>
               <GlassCard style={styles.recipeCard} noPadding>
-                <Image source={{ uri: m.cocktail.image }} style={styles.recipeImage} />
+                <Image source={getCocktailImageSource(m.cocktail.id)} style={styles.recipeImage} />
                 <View style={styles.recipeInfo}>
                   <View style={styles.recipeHeader}>
                     <View style={{ flex: 1 }}>

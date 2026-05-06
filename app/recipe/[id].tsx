@@ -8,6 +8,7 @@ import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
 import { cocktails, ingredients } from '../../data/mock';
 import { getCocktailMatch } from '../../utils/match';
+import { getCocktailImageSource } from '../../utils/images';
 import { useApp } from '../../hooks/useApp';
 import GlassCard from '../../components/GlassCard';
 import TagChip from '../../components/TagChip';
@@ -16,7 +17,7 @@ export default function RecipeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { state, toggleFavorite, isCocktailFavorite, addRecentViewed, addToShoppingList, isIngredientOwned } = useApp();
+  const { state, toggleFavorite, isCocktailFavorite, addRecentViewed, addToShoppingList, isIngredientOwned, isInShoppingList } = useApp();
 
   const cocktail = useMemo(() => cocktails.find((c) => c.id === id), [id]);
   const match = useMemo(
@@ -46,6 +47,16 @@ export default function RecipeDetailScreen() {
   const isFav = isCocktailFavorite(cocktail.id);
   const missingCount = match.missingCount;
   const canMake = missingCount === 0;
+  const imageSource = getCocktailImageSource(cocktail.id);
+
+  const handleAddSingle = (ingredientId: string, ingredientName: string) => {
+    if (isInShoppingList(ingredientId)) {
+      Alert.alert('补货清单', `${ingredientName} 已在补货清单中`);
+      return;
+    }
+    addToShoppingList([ingredientId]);
+    Alert.alert('补货清单', `已加入补货清单：${ingredientName}`);
+  };
 
   const handleMake = () => {
     if (canMake) {
@@ -68,7 +79,7 @@ export default function RecipeDetailScreen() {
     <View style={styles.root}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.imageWrap}>
-          <Image source={{ uri: cocktail.image }} style={styles.heroImage} />
+          <Image source={imageSource} style={styles.heroImage} />
           <View style={[styles.imageOverlay, { paddingTop: insets.top + spacing.sm }]}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
               <MaterialIcons name="arrow-back" size={24} color={colors.text} />
@@ -134,8 +145,16 @@ export default function RecipeDetailScreen() {
                 </Text>
                 <Text style={styles.ingredientAmount}>{ci.amount}</Text>
                 {!owned && (
-                  <TouchableOpacity style={styles.buyIcon}>
-                    <MaterialIcons name="shopping-cart" size={18} color={colors.primary} />
+                  <TouchableOpacity
+                    style={styles.buyIcon}
+                    onPress={() => handleAddSingle(ci.ingredientId, ing?.name || ci.ingredientId)}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  >
+                    <MaterialIcons
+                      name={isInShoppingList(ci.ingredientId) ? 'check-circle' : 'add-shopping-cart'}
+                      size={22}
+                      color={colors.primary}
+                    />
                   </TouchableOpacity>
                 )}
               </View>
