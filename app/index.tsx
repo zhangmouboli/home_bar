@@ -1,30 +1,45 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { cocktails, ownedIngredientIds } from '../data/mock';
+import { cocktails } from '../data/mock';
 import { getCocktailMatch } from '../utils/match';
+import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
 import SectionTitle from '../components/SectionTitle';
 import TagChip from '../components/TagChip';
 import CocktailImageCard from '../components/CocktailImageCard';
+import SearchInput from '../components/SearchInput';
 
 const quickTags = ['简单', '清爽', '低酒精', '派对'];
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { state } = useApp();
+  const [search, setSearch] = useState('');
 
   const matches = useMemo(
-    () => cocktails.map((c) => getCocktailMatch(c, ownedIngredientIds)),
-    []
+    () => cocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds)),
+    [state.ownedIngredientIds]
   );
 
   const canMake = matches.filter((m) => m.status === 'canMake');
   const missingOne = matches.filter((m) => m.status === 'missingOne');
+
+  const searchResults = useMemo(() => {
+    if (!search.trim()) return [];
+    const q = search.trim().toLowerCase();
+    return cocktails.filter(
+      (c) =>
+        c.nameZh.toLowerCase().includes(q) ||
+        c.nameEn.toLowerCase().includes(q) ||
+        c.tags.some((t) => t.includes(q))
+    );
+  }, [search]);
 
   return (
     <View style={styles.root}>
@@ -32,78 +47,99 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <Text style={styles.greeting}>今晚想喝什么？</Text>
 
-        <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={20} color={colors.outlineLight} />
-          <Text style={styles.searchPlaceholder}>搜索鸡尾酒或配料...</Text>
-        </View>
+        <SearchInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="搜索鸡尾酒或配料..."
+        />
 
-        <TouchableOpacity onPress={() => router.push('/cabinet')}>
-          <GlassCard style={styles.cabinetCard}>
-            <View style={styles.cabinetHeader}>
-              <Text style={styles.cabinetTitle}>我的酒柜</Text>
-              <MaterialIcons name="chevron-right" size={22} color={colors.textMuted} />
-            </View>
-            <View style={styles.cabinetStats}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNum}>{ownedIngredientIds.length}</Text>
-                <Text style={styles.statLabel}>种材料</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statNum}>{canMake.length}</Text>
-                <Text style={styles.statLabel}>款可调</Text>
-              </View>
-            </View>
-            <View style={styles.progressBar}>
-              <View
-                style={[styles.progressFill, { width: `${cocktails.length > 0 ? Math.round((canMake.length / cocktails.length) * 100) : 0}%` }]}
-              />
-            </View>
-            <TouchableOpacity style={styles.manageBtn} onPress={() => router.push('/cabinet')}>
-              <Text style={styles.manageBtnText}>管理酒柜</Text>
-            </TouchableOpacity>
-          </GlassCard>
-        </TouchableOpacity>
-
-        <View style={styles.tagsRow}>
-          {quickTags.map((t) => (
-            <TagChip key={t} label={t} />
-          ))}
-        </View>
-
-        <SectionTitle title="现在可制作" actionText="查看全部" onAction={() => router.push('/recipes')} />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-          {canMake.map((item) => (
-            <CocktailImageCard
-              key={item.cocktail.id}
-              match={item}
-              variant="horizontal"
-              onPress={() => router.push(`/recipe/${item.cocktail.id}`)}
-            />
-          ))}
-        </ScrollView>
-
-        {missingOne.length > 0 && (
+        {search.trim() ? (
+          searchResults.length > 0 ? (
+            searchResults.map((c) => {
+              const m = getCocktailMatch(c, state.ownedIngredientIds);
+              return (
+                <TouchableOpacity key={c.id} onPress={() => { setSearch(''); router.push(`/recipe/${c.id}`); }}>
+                  <GlassCard style={styles.searchCard}>
+                    <Text style={styles.searchName}>{c.nameZh}</Text>
+                    <Text style={styles.searchSub}>{c.nameEn} · {m.matchPercent}% 匹配</Text>
+                  </GlassCard>
+                </TouchableOpacity>
+              );
+            })
+          ) : (
+            <Text style={styles.noResults}>未找到相关鸡尾酒</Text>
+          )
+        ) : (
           <>
-            <SectionTitle title="缺少 1 种配料" />
-            {missingOne.map((m) => (
-              <TouchableOpacity
-                key={m.cocktail.id}
-                onPress={() => router.push(`/recipe/${m.cocktail.id}`)}
-              >
-                <GlassCard style={styles.missingCard}>
-                  <View style={styles.missingRow}>
-                    <View style={styles.missingInfo}>
-                      <Text style={styles.missingName}>{m.cocktail.nameZh}</Text>
-                      <Text style={styles.missingSub}>
-                        缺少：{m.missingIngredients.map((i) => i.name).join('、')}
-                      </Text>
-                    </View>
-                    <MaterialIcons name="shopping-cart" size={22} color={colors.primary} />
+            <TouchableOpacity onPress={() => router.push('/cabinet')}>
+              <GlassCard style={styles.cabinetCard}>
+                <View style={styles.cabinetHeader}>
+                  <Text style={styles.cabinetTitle}>我的酒柜</Text>
+                  <MaterialIcons name="chevron-right" size={22} color={colors.textMuted} />
+                </View>
+                <View style={styles.cabinetStats}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNum}>{state.ownedIngredientIds.length}</Text>
+                    <Text style={styles.statLabel}>种材料</Text>
                   </View>
-                </GlassCard>
-              </TouchableOpacity>
-            ))}
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNum}>{canMake.length}</Text>
+                    <Text style={styles.statLabel}>款可调</Text>
+                  </View>
+                </View>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[styles.progressFill, { width: `${cocktails.length > 0 ? Math.round((canMake.length / cocktails.length) * 100) : 0}%` }]}
+                  />
+                </View>
+                <TouchableOpacity style={styles.manageBtn} onPress={() => router.push('/cabinet')}>
+                  <Text style={styles.manageBtnText}>管理酒柜</Text>
+                </TouchableOpacity>
+              </GlassCard>
+            </TouchableOpacity>
+
+            <View style={styles.tagsRow}>
+              {quickTags.map((t) => (
+                <TagChip key={t} label={t} />
+              ))}
+            </View>
+
+            <SectionTitle title="现在可制作" actionText="查看全部" onAction={() => router.push('/recipes')} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+              {canMake.map((item) => (
+                <CocktailImageCard
+                  key={item.cocktail.id}
+                  match={item}
+                  variant="horizontal"
+                  onPress={() => router.push(`/recipe/${item.cocktail.id}`)}
+                />
+              ))}
+            </ScrollView>
+
+            {missingOne.length > 0 && (
+              <>
+                <SectionTitle title="缺少 1 种配料" />
+                {missingOne.map((m) => (
+                  <TouchableOpacity
+                    key={m.cocktail.id}
+                    onPress={() => router.push(`/recipe/${m.cocktail.id}`)}
+                  >
+                    <GlassCard style={styles.missingCard}>
+                      <View style={styles.missingRow}>
+                        <View style={styles.missingInfo}>
+                          <Text style={styles.missingName}>{m.cocktail.nameZh}</Text>
+                          <Text style={styles.missingSub}>
+                            缺少：{m.missingIngredients.map((i) => i.name).join('、')}
+                          </Text>
+                        </View>
+                        <MaterialIcons name="shopping-cart" size={22} color={colors.primary} />
+                      </View>
+                    </GlassCard>
+                  </TouchableOpacity>
+                ))}
+              </>
+            )}
           </>
         )}
       </ScrollView>
@@ -126,22 +162,24 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: spacing.borderRadius.xl,
-    paddingHorizontal: spacing.cardPadding,
-    paddingVertical: spacing.sm + 4,
+  searchCard: {
     marginHorizontal: spacing.pageMargin,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.04)',
+    marginBottom: spacing.sm,
   },
-  searchPlaceholder: {
+  searchName: {
+    ...typography.headlineMd,
+    color: colors.text,
+  },
+  searchSub: {
+    ...typography.labelMd,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  noResults: {
     ...typography.bodyMd,
-    color: colors.outlineLight,
-    marginLeft: spacing.sm,
+    color: colors.textMuted,
+    textAlign: 'center',
+    paddingVertical: spacing.xl,
   },
   cabinetCard: {
     marginHorizontal: spacing.pageMargin,

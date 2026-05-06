@@ -5,11 +5,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { cocktails, ownedIngredientIds } from '../data/mock';
+import { cocktails } from '../data/mock';
 import { getCocktailMatch } from '../utils/match';
+import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
 import TagChip from '../components/TagChip';
+import SearchInput from '../components/SearchInput';
 
 const filters = [
   { key: 'all', label: '全部' },
@@ -22,22 +24,33 @@ const filters = [
 
 export default function RecipesScreen() {
   const router = useRouter();
+  const { state, toggleFavorite, isCocktailFavorite } = useApp();
   const [activeFilter, setActiveFilter] = useState('all');
+  const [search, setSearch] = useState('');
 
   const matches = useMemo(
-    () => cocktails.map((c) => getCocktailMatch(c, ownedIngredientIds)),
-    []
+    () => cocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds)),
+    [state.ownedIngredientIds]
   );
 
   const filtered = useMemo(() => {
-    if (activeFilter === 'all') return matches;
-    if (activeFilter === 'beginner') return matches.filter((m) => m.cocktail.tags.includes('新手友好'));
-    if (activeFilter === 'classic') return matches.filter((m) => m.cocktail.tags.includes('经典'));
-    if (activeFilter === 'summer') return matches.filter((m) => m.cocktail.tags.includes('清爽'));
-    if (activeFilter === 'party') return matches.filter((m) => m.cocktail.tags.includes('派对'));
-    if (activeFilter === 'low') return matches.filter((m) => m.cocktail.alcoholLevel === '低等');
-    return matches;
-  }, [activeFilter, matches]);
+    let list = matches;
+    if (activeFilter === 'beginner') list = list.filter((m) => m.cocktail.tags.includes('新手友好'));
+    else if (activeFilter === 'classic') list = list.filter((m) => m.cocktail.tags.includes('经典'));
+    else if (activeFilter === 'summer') list = list.filter((m) => m.cocktail.tags.includes('清爽'));
+    else if (activeFilter === 'party') list = list.filter((m) => m.cocktail.tags.includes('派对'));
+    else if (activeFilter === 'low') list = list.filter((m) => m.cocktail.alcoholLevel === '低等');
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (m) =>
+          m.cocktail.nameZh.toLowerCase().includes(q) ||
+          m.cocktail.nameEn.toLowerCase().includes(q) ||
+          m.cocktail.tags.some((t) => t.includes(q))
+      );
+    }
+    return list;
+  }, [activeFilter, matches, search]);
 
   return (
     <View style={styles.root}>
@@ -46,11 +59,11 @@ export default function RecipesScreen() {
         <Text style={styles.title}>酒谱库</Text>
         <Text style={styles.subtitle}>探索并调制您的下一款招牌饮品。</Text>
 
-        <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={20} color={colors.outlineLight} />
-          <Text style={styles.searchPlaceholder}>搜索鸡尾酒或配料...</Text>
-          <MaterialIcons name="tune" size={20} color={colors.outlineLight} />
-        </View>
+        <SearchInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="搜索鸡尾酒或配料..."
+        />
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
           {filters.map((f) => (
@@ -73,8 +86,12 @@ export default function RecipesScreen() {
                     <Text style={styles.recipeName}>{m.cocktail.nameZh}</Text>
                     <Text style={styles.recipeSub}>{m.cocktail.subtitle}</Text>
                   </View>
-                  <TouchableOpacity>
-                    <MaterialIcons name="favorite-border" size={22} color={colors.textMuted} />
+                  <TouchableOpacity onPress={() => toggleFavorite(m.cocktail.id)}>
+                    <MaterialIcons
+                      name={isCocktailFavorite(m.cocktail.id) ? 'favorite' : 'favorite-border'}
+                      size={22}
+                      color={isCocktailFavorite(m.cocktail.id) ? colors.primary : colors.textMuted}
+                    />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.recipeMeta}>
@@ -127,24 +144,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.pageMargin,
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: spacing.borderRadius.xl,
-    paddingHorizontal: spacing.cardPadding,
-    paddingVertical: spacing.sm + 4,
-    marginHorizontal: spacing.pageMargin,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.04)',
-  },
-  searchPlaceholder: {
-    ...typography.bodyMd,
-    color: colors.outlineLight,
-    marginLeft: spacing.sm,
-    flex: 1,
   },
   filterScroll: {
     marginBottom: spacing.lg,

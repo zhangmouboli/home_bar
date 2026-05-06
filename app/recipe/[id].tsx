@@ -1,13 +1,14 @@
-import React, { useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useMemo, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
-import { cocktails, ownedIngredientIds, ingredients } from '../../data/mock';
+import { cocktails, ingredients } from '../../data/mock';
 import { getCocktailMatch } from '../../utils/match';
+import { useApp } from '../../hooks/useApp';
 import GlassCard from '../../components/GlassCard';
 import TagChip from '../../components/TagChip';
 
@@ -15,12 +16,17 @@ export default function RecipeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { state, toggleFavorite, isCocktailFavorite, addRecentViewed, addMadeCocktail, isIngredientOwned } = useApp();
 
   const cocktail = useMemo(() => cocktails.find((c) => c.id === id), [id]);
   const match = useMemo(
-    () => (cocktail ? getCocktailMatch(cocktail, ownedIngredientIds) : null),
-    [cocktail]
+    () => (cocktail ? getCocktailMatch(cocktail, state.ownedIngredientIds) : null),
+    [cocktail, state.ownedIngredientIds]
   );
+
+  useEffect(() => {
+    if (id) addRecentViewed(id);
+  }, [id]);
 
   if (!cocktail || !match) {
     return (
@@ -36,6 +42,28 @@ export default function RecipeDetailScreen() {
       </View>
     );
   }
+
+  const isFav = isCocktailFavorite(cocktail.id);
+  const missingCount = match.missingCount;
+  const canMake = missingCount === 0;
+
+  const handleMake = () => {
+    if (canMake) {
+      Alert.alert('开始制作', `确定要开始制作「${cocktail.nameZh}」吗？`, [
+        { text: '取消', style: 'cancel' },
+        { text: '制作完成', onPress: () => addMadeCocktail(cocktail.id) },
+      ]);
+    } else {
+      Alert.alert(
+        '缺少配料',
+        `还缺 ${match.missingIngredients.map((i) => i.name).join('、')}，共 ${missingCount} 种。\n是否前往补货？`,
+        [
+          { text: '取消', style: 'cancel' },
+          { text: '去补货', onPress: () => router.push('/cabinet') },
+        ]
+      );
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -58,8 +86,8 @@ export default function RecipeDetailScreen() {
               <Text style={styles.nameZh}>{cocktail.nameZh}</Text>
               <Text style={styles.nameEn}>{cocktail.nameEn}</Text>
             </View>
-            <TouchableOpacity>
-              <MaterialIcons name="favorite-border" size={28} color={colors.textMuted} />
+            <TouchableOpacity onPress={() => toggleFavorite(cocktail.id)}>
+              <MaterialIcons name={isFav ? 'favorite' : 'favorite-border'} size={28} color={isFav ? colors.primary : colors.textMuted} />
             </TouchableOpacity>
           </View>
 
@@ -94,7 +122,7 @@ export default function RecipeDetailScreen() {
           <Text style={styles.sectionTitle}>所需材料</Text>
           {cocktail.ingredients.map((ci) => {
             const ing = ingredients.find((i) => i.id === ci.ingredientId);
-            const owned = ownedIngredientIds.includes(ci.ingredientId);
+            const owned = isIngredientOwned(ci.ingredientId);
             return (
               <View key={ci.ingredientId} style={styles.ingredientRow}>
                 <MaterialIcons
@@ -150,12 +178,12 @@ export default function RecipeDetailScreen() {
       </ScrollView>
 
       <View style={[styles.bottomCta, { paddingBottom: insets.bottom + spacing.pageMargin }]}>
-        <TouchableOpacity style={styles.startBtn}>
-          <MaterialIcons name="play-arrow" size={22} color={colors.background} />
-          <Text style={styles.startBtnText}>开始制作</Text>
+        <TouchableOpacity style={[styles.startBtn, !canMake && styles.startBtnDisabled]} onPress={handleMake}>
+          <MaterialIcons name={canMake ? 'play-arrow' : 'shopping-cart'} size={22} color={colors.background} />
+          <Text style={styles.startBtnText}>{canMake ? '开始制作' : `缺少 ${missingCount} 种配料`}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.favBtn}>
-          <MaterialIcons name="favorite-border" size={24} color={colors.primary} />
+        <TouchableOpacity style={styles.favBtn} onPress={() => toggleFavorite(cocktail.id)}>
+          <MaterialIcons name={isFav ? 'favorite' : 'favorite-border'} size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -366,6 +394,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: spacing.borderRadius.lg,
     paddingVertical: spacing.md,
+  },
+  startBtnDisabled: {
+    backgroundColor: colors.surfaceHigh,
   },
   startBtnText: {
     ...typography.labelLg,

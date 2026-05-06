@@ -1,5 +1,6 @@
 import { Cocktail, CocktailMatch, Ingredient } from '../types';
 import { ingredients } from '../data/mock';
+import { colors } from '../theme/colors';
 
 export function getCocktailMatch(
   cocktail: Cocktail,
@@ -39,12 +40,12 @@ export function getMatchStatus(status: CocktailMatch['status']): {
 } {
   switch (status) {
     case 'canMake':
-      return { label: '配料齐全', color: '#4ade80' };
+      return { label: '配料齐全', color: colors.success };
     case 'missingOne':
-      return { label: '缺 1 种', color: '#f2ca50' };
+      return { label: '缺 1 种', color: colors.primary };
     case 'missingTwo':
-      return { label: '缺 2 种', color: '#f2ca50' };
+      return { label: '缺 2 种', color: colors.primary };
     case 'moreMissing':
-      return { label: '缺少多种', color: '#99907c' };
+      return { label: '缺少多种', color: colors.outline };
   }
 }

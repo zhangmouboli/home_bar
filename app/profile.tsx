@@ -4,12 +4,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { ownedIngredientIds, cocktails } from '../data/mock';
+import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
 import StatCard from '../components/StatCard';
 
 export default function ProfileScreen() {
+  const { state } = useApp();
   const [hideNonAlc, setHideNonAlc] = useState(false);
   const [beginnerMode, setBeginnerMode] = useState(true);
 
@@ -26,10 +27,10 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard icon="inventory-2" value={ownedIngredientIds.length} label="我的酒柜" />
-          <StatCard icon="favorite" value={18} label="我的收藏" />
-          <StatCard icon="visibility" value={32} label="最近浏览" />
-          <StatCard icon="local-bar" value={cocktails.length} label="酒谱总数" />
+          <StatCard icon="inventory-2" value={state.ownedIngredientIds.length} label="我的酒柜" />
+          <StatCard icon="favorite" value={state.favoriteCocktailIds.length} label="我的收藏" />
+          <StatCard icon="visibility" value={state.recentViewedCocktailIds.length} label="最近浏览" />
+          <StatCard icon="local-bar" value={state.madeCocktailIds.length} label="已制作" />
         </View>
 
         <Text style={styles.sectionTitle}>偏好设置</Text>
@@ -88,7 +89,7 @@ export default function ProfileScreen() {
           ))}
         </GlassCard>
 
-        <Text style={styles.version}>v1.2.0</Text>
+        <Text style={styles.version}>v2.0.0</Text>
       </ScrollView>
     </View>
   );

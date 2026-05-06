@@ -3,11 +3,13 @@ import { StatusBar } from 'expo-status-bar';
 import { MaterialIcons } from '@expo/vector-icons';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppProvider } from '../context/AppContext';
 import { colors } from '../theme/colors';
 
 export default function Layout() {
   return (
     <SafeAreaProvider>
+      <AppProvider>
       <View style={styles.root}>
         <StatusBar style="light" />
         <Tabs
@@ -70,6 +72,7 @@ export default function Layout() {
           />
         </Tabs>
       </View>
+      </AppProvider>
     </SafeAreaProvider>
   );
 }

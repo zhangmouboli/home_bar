@@ -1,16 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { cocktails, ownedIngredientIds, ingredients } from '../data/mock';
+import { cocktails, ingredients } from '../data/mock';
 import { getCocktailMatch } from '../utils/match';
+import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import GlassCard from '../components/GlassCard';
 import TagChip from '../components/TagChip';
-import CocktailImageCard from '../components/CocktailImageCard';
 
 const tabs = [
   { key: 'canMake', label: '现在能做' },
@@ -20,11 +20,12 @@ const tabs = [
 
 export default function RecommendScreen() {
   const router = useRouter();
+  const { state, toggleIngredient, isIngredientOwned } = useApp();
   const [activeTab, setActiveTab] = useState('canMake');
 
   const matches = useMemo(
-    () => cocktails.map((c) => getCocktailMatch(c, ownedIngredientIds)),
-    []
+    () => cocktails.map((c) => getCocktailMatch(c, state.ownedIngredientIds)),
+    [state.ownedIngredientIds]
   );
 
   const filtered = useMemo(() => {
@@ -34,21 +35,32 @@ export default function RecommendScreen() {
   }, [activeTab, matches]);
 
   const suggestions = useMemo(() => {
-    const missingMap: Record<string, number> = {};
+    const missingMap: Record<string, { count: number; id: string }> = {};
     matches
       .filter((m) => m.status === 'missingOne')
       .forEach((m) => {
         m.missingIngredients.forEach((ing) => {
-          missingMap[ing.name] = (missingMap[ing.name] || 0) + 1;
+          if (!missingMap[ing.id]) missingMap[ing.id] = { count: 0, id: ing.id };
+          missingMap[ing.id].count++;
         });
       });
-    return Object.entries(missingMap)
-      .sort((a, b) => b[1] - a[1])
+    return Object.values(missingMap)
+      .sort((a, b) => b.count - a.count)
       .slice(0, 3)
-      .map(([name, count]) => ({ name, count }));
+      .map(({ id, count }) => {
+        const ing = ingredients.find((i) => i.id === id);
+        return { id, name: ing?.name || id, count };
+      });
   }, [matches]);
 
   const canMakeCount = matches.filter((m) => m.status === 'canMake').length;
+
+  const handleSuggestionPress = (id: string, name: string) => {
+    Alert.alert('补货建议', `是否将「${name}」加入酒柜？`, [
+      { text: '取消', style: 'cancel' },
+      { text: '加入', onPress: () => toggleIngredient(id) },
+    ]);
+  };
 
   return (
     <View style={styles.root}>
@@ -60,7 +72,7 @@ export default function RecommendScreen() {
           {' '}款鸡尾酒
         </Text>
         <Text style={styles.subtitle}>
-          你的酒柜有 {ownedIngredientIds.length} 种材料
+          你的酒柜有 {state.ownedIngredientIds.length} 种材料
         </Text>
 
         <View style={styles.tabsRow}>
@@ -80,61 +92,54 @@ export default function RecommendScreen() {
             <Text style={styles.emptyText}>暂无匹配的鸡尾酒</Text>
           </View>
         ) : (
-          <FlatList
-            data={filtered}
-            scrollEnabled={false}
-            keyExtractor={(item) => item.cocktail.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => router.push(`/recipe/${item.cocktail.id}`)}>
-                <GlassCard style={styles.cocktailCard}>
-                  <View style={styles.cardRow}>
-                    <View style={styles.cardInfo}>
-                      <Text style={styles.cocktailName}>{item.cocktail.nameZh}</Text>
-                      <Text style={styles.cocktailSub}>{item.cocktail.nameEn}</Text>
-                      <View style={styles.tagRow}>
-                        {item.cocktail.tags.slice(0, 3).map((t) => (
-                          <Text key={t} style={styles.tag}>{t}</Text>
-                        ))}
+          filtered.map((item) => (
+            <TouchableOpacity key={item.cocktail.id} onPress={() => router.push(`/recipe/${item.cocktail.id}`)}>
+              <GlassCard style={styles.cocktailCard}>
+                <View style={styles.cardRow}>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cocktailName}>{item.cocktail.nameZh}</Text>
+                    <Text style={styles.cocktailSub}>{item.cocktail.nameEn}</Text>
+                    <View style={styles.tagRow}>
+                      {item.cocktail.tags.slice(0, 3).map((t) => (
+                        <Text key={t} style={styles.tag}>{t}</Text>
+                      ))}
+                    </View>
+                    {item.status !== 'canMake' && (
+                      <View style={styles.missingInfo}>
+                        <MaterialIcons name="info-outline" size={14} color={colors.primary} />
+                        <Text style={styles.missingText}>
+                          缺少 {item.missingIngredients.map((i) => i.name).join('、')}
+                        </Text>
                       </View>
-                      {item.status !== 'canMake' && (
-                        <View style={styles.missingInfo}>
-                          <MaterialIcons name="info-outline" size={14} color={colors.primary} />
-                          <Text style={styles.missingText}>
-                            缺少 {item.missingIngredients.map((i) => i.name).join('、')}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.matchCircle}>
-                      <Text style={styles.matchPercent}>{item.matchPercent}%</Text>
-                      {item.status === 'canMake' && (
-                        <MaterialIcons name="check-circle" size={16} color={colors.success} style={{ marginTop: 4 }} />
-                      )}
-                      {item.status !== 'canMake' && (
-                        <TouchableOpacity style={styles.buyBtn}>
-                          <MaterialIcons name="shopping-cart" size={18} color={colors.primary} />
-                        </TouchableOpacity>
-                      )}
-                    </View>
+                    )}
                   </View>
-                </GlassCard>
-              </TouchableOpacity>
-            )}
-          />
+                  <View style={styles.matchCircle}>
+                    <Text style={styles.matchPercent}>{item.matchPercent}%</Text>
+                    {item.status === 'canMake' && (
+                      <MaterialIcons name="check-circle" size={16} color={colors.success} style={{ marginTop: 4 }} />
+                    )}
+                  </View>
+                </View>
+              </GlassCard>
+            </TouchableOpacity>
+          ))
         )}
 
         {suggestions.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>补货建议</Text>
             {suggestions.map((s) => (
-              <GlassCard key={s.name} style={styles.suggestCard}>
-                <View style={styles.suggestRow}>
-                  <MaterialIcons name="add-shopping-cart" size={20} color={colors.primary} />
-                  <Text style={styles.suggestText}>
-                    买 <Text style={styles.highlight}>{s.name}</Text>，可多做 {s.count} 款
-                  </Text>
-                </View>
-              </GlassCard>
+              <TouchableOpacity key={s.id} onPress={() => handleSuggestionPress(s.id, s.name)}>
+                <GlassCard style={styles.suggestCard}>
+                  <View style={styles.suggestRow}>
+                    <MaterialIcons name="add-shopping-cart" size={20} color={colors.primary} />
+                    <Text style={styles.suggestText}>
+                      买 <Text style={styles.highlight}>{s.name}</Text>，可多做 {s.count} 款
+                    </Text>
+                    <MaterialIcons name="chevron-right" size={20} color={colors.outlineLight} />
+                  </View>
+                </GlassCard>
+              </TouchableOpacity>
             ))}
           </>
         )}
@@ -226,9 +231,6 @@ const styles = StyleSheet.create({
     ...typography.headlineMd,
     color: colors.primary,
   },
-  buyBtn: {
-    marginTop: 4,
-  },
   empty: {
     alignItems: 'center',
     paddingVertical: spacing.xl * 2,
@@ -257,5 +259,6 @@ const styles = StyleSheet.create({
     ...typography.bodyMd,
     color: colors.textMuted,
     marginLeft: spacing.sm,
+    flex: 1,
   },
 });

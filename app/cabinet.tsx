@@ -6,10 +6,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
-import { ingredients, ownedIngredientIds, categoryLabels } from '../data/mock';
+import { ingredients, categoryLabels } from '../data/mock';
+import { useApp } from '../hooks/useApp';
 import AppHeader from '../components/AppHeader';
 import IngredientItem from '../components/IngredientItem';
 import TagChip from '../components/TagChip';
+import SearchInput from '../components/SearchInput';
 
 const quickAdd = [
   { id: 'vodka', name: '伏特加' },
@@ -35,22 +37,23 @@ const categories = [
 export default function CabinetScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { state, toggleIngredient, isIngredientOwned } = useApp();
   const [activeCategory, setActiveCategory] = useState('all');
-  const [owned, setOwned] = useState(new Set(ownedIngredientIds));
+  const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
-    if (activeCategory === 'all') return ingredients;
-    return ingredients.filter((i) => i.category === activeCategory);
-  }, [activeCategory]);
-
-  const toggleOwned = (id: string) => {
-    setOwned((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+    let list = ingredients;
+    if (activeCategory !== 'all') {
+      list = list.filter((i) => i.category === activeCategory);
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (i) => i.name.toLowerCase().includes(q) || (i.nameEn && i.nameEn.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [activeCategory, search]);
 
   return (
     <View style={styles.root}>
@@ -58,28 +61,29 @@ export default function CabinetScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>我的酒柜</Text>
-          <Text style={styles.count}>{owned.size} 项</Text>
+          <Text style={styles.count}>{state.ownedIngredientIds.length} 项</Text>
         </View>
 
-        <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={20} color={colors.outlineLight} />
-          <Text style={styles.searchPlaceholder}>搜索配料...</Text>
-        </View>
+        <SearchInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="搜索配料..."
+        />
 
         <Text style={styles.sectionLabel}>快速添加</Text>
         <View style={styles.quickRow}>
           {quickAdd.map((item) => {
-            const isOwned = owned.has(item.id);
+            const owned = isIngredientOwned(item.id);
             return (
               <TouchableOpacity
                 key={item.id}
-                style={[styles.quickChip, isOwned && styles.quickChipActive]}
-                onPress={() => toggleOwned(item.id)}
+                style={[styles.quickChip, owned && styles.quickChipActive]}
+                onPress={() => toggleIngredient(item.id)}
               >
-                <Text style={[styles.quickText, isOwned && styles.quickTextActive]}>
+                <Text style={[styles.quickText, owned && styles.quickTextActive]}>
                   {item.name}
                 </Text>
-                {isOwned && <MaterialIcons name="check" size={14} color={colors.primary} style={{ marginLeft: 4 }} />}
+                {owned && <MaterialIcons name="check" size={14} color={colors.primary} style={{ marginLeft: 4 }} />}
               </TouchableOpacity>
             );
           })}
@@ -103,8 +107,8 @@ export default function CabinetScreen() {
               name={item.name}
               category={categoryLabels[item.category] || item.category}
               icon={item.icon}
-              owned={owned.has(item.id)}
-              onToggle={() => toggleOwned(item.id)}
+              owned={isIngredientOwned(item.id)}
+              onToggle={() => toggleIngredient(item.id)}
             />
           ))}
         </View>
@@ -142,23 +146,6 @@ const styles = StyleSheet.create({
   count: {
     ...typography.labelLg,
     color: colors.primary,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: spacing.borderRadius.xl,
-    paddingHorizontal: spacing.cardPadding,
-    paddingVertical: spacing.sm + 4,
-    marginHorizontal: spacing.pageMargin,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.04)',
-  },
-  searchPlaceholder: {
-    ...typography.bodyMd,
-    color: colors.outlineLight,
-    marginLeft: spacing.sm,
   },
   sectionLabel: {
     ...typography.labelLg,
