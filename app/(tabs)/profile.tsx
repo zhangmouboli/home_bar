@@ -6,6 +6,7 @@ import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
 import { useApp } from '../../hooks/useApp';
+import { APP_VERSION, APP_VERSION_NAME } from '../../constants/version';
 import AppHeader from '../../components/AppHeader';
 import GlassCard from '../../components/GlassCard';
 import StatCard from '../../components/StatCard';
@@ -105,14 +106,14 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>系统设置</Text>
         <GlassCard style={styles.settingCard}>
           {[
-            { icon: 'security', label: '账号与安全' },
-            { icon: 'privacy-tip', label: '隐私政策' },
-            { icon: 'description', label: '用户协议' },
-            { icon: 'info', label: '关于 Home Bar' },
+            { icon: 'security', label: '账号与安全', route: '/settings/account' },
+            { icon: 'privacy-tip', label: '隐私政策', route: '/settings/privacy' },
+            { icon: 'description', label: '用户协议', route: '/settings/terms' },
+            { icon: 'info', label: '关于 Home Bar', route: '/settings/about' },
           ].map((item, i) => (
             <React.Fragment key={item.label}>
               {i > 0 && <View style={styles.divider} />}
-              <TouchableOpacity style={styles.settingRow} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.settingRow} activeOpacity={0.7} onPress={() => router.push(item.route)}>
                 <MaterialIcons name={item.icon as any} size={22} color={colors.textMuted} />
                 <Text style={styles.settingLabel}>{item.label}</Text>
                 <MaterialIcons name="chevron-right" size={22} color={colors.outlineLight} />
@@ -121,7 +122,7 @@ export default function ProfileScreen() {
           ))}
         </GlassCard>
 
-        <Text style={styles.version}>v3.1.0</Text>
+        <Text style={styles.version}>{APP_VERSION} · {APP_VERSION_NAME}</Text>
       </ScrollView>
     </View>
   );
