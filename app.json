@@ -2,7 +2,7 @@
   "expo": {
     "name": "家庭酒吧",
     "slug": "home-bar",
-    "version": "4.2.2",
+    "version": "5.0.0",
     "orientation": "portrait",
     "scheme": "home-bar",
     "icon": "./assets/icon.png",
