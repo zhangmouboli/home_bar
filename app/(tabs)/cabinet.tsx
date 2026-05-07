@@ -39,16 +39,22 @@ const categories = [
 export default function CabinetScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, toggleIngredient, isIngredientOwned, allIngredients, addCustomIngredient, removeCustomIngredient } = useApp();
+  const { state, toggleIngredient, isIngredientOwned, allIngredients, addCustomIngredient, removeCustomIngredient, updateCustomIngredient } = useApp();
   const [activeCategory, setActiveCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingIngredient, setEditingIngredient] = useState<import('../../types').Ingredient | null>(null);
 
-  const handleAddIngredient = (input: { name: string; nameEn?: string; category: import('../../types').IngredientCategory }) => {
-    const id = `custom-ingredient-${Date.now()}`;
-    addCustomIngredient({ id, name: input.name, nameEn: input.nameEn, category: input.category, icon: 'local-bar' });
-    toggleIngredient(id);
+  const handleSaveIngredient = (input: { name: string; nameEn?: string; category: import('../../types').IngredientCategory }) => {
+    if (editingIngredient) {
+      updateCustomIngredient(editingIngredient.id, input);
+    } else {
+      const id = `custom-ingredient-${Date.now()}`;
+      addCustomIngredient({ id, name: input.name, nameEn: input.nameEn, category: input.category, icon: 'local-bar' });
+      toggleIngredient(id);
+    }
     setShowAddModal(false);
+    setEditingIngredient(null);
   };
 
   const filtered = useMemo(() => {
@@ -83,7 +89,7 @@ export default function CabinetScreen() {
           placeholder="搜索材料或分类..."
         />
 
-        <TouchableOpacity style={styles.addBtn} onPress={() => setShowAddModal(true)} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.addBtn} onPress={() => { setEditingIngredient(null); setShowAddModal(true); }} activeOpacity={0.7}>
           <MaterialIcons name="add" size={20} color={colors.primary} />
           <Text style={styles.addBtnText}>添加自定义材料</Text>
         </TouchableOpacity>
@@ -136,6 +142,7 @@ export default function CabinetScreen() {
                 icon={item.icon}
                 owned={isIngredientOwned(item.id)}
                 onToggle={() => toggleIngredient(item.id)}
+                onEdit={item.id.startsWith('custom-ingredient-') ? () => { setEditingIngredient(item); setShowAddModal(true); } : undefined}
                 onDelete={item.id.startsWith('custom-ingredient-') ? () => {
                   Alert.alert('删除材料', `确定要删除「${item.name}」吗？`, [
                     { text: '取消', style: 'cancel' },
@@ -157,8 +164,10 @@ export default function CabinetScreen() {
 
       <AddIngredientModal
         visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleAddIngredient}
+        onClose={() => { setShowAddModal(false); setEditingIngredient(null); }}
+        onSave={handleSaveIngredient}
+        title={editingIngredient ? '编辑材料' : '添加自定义材料'}
+        initialValues={editingIngredient ? { name: editingIngredient.name, nameEn: editingIngredient.nameEn, category: editingIngredient.category } : undefined}
       />
     </View>
   );

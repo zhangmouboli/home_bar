@@ -215,9 +215,14 @@ export default function RecipeDetailScreen() {
           <MaterialIcons name={isFav ? 'favorite' : 'favorite-border'} size={24} color={colors.primary} />
         </TouchableOpacity>
         {isCustom && (
-          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-            <MaterialIcons name="delete" size={24} color={colors.error} />
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={styles.editBtn} onPress={() => router.push(`/custom-recipe/${cocktail.id}/edit`)}>
+              <MaterialIcons name="edit" size={24} color={colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+              <MaterialIcons name="delete" size={24} color={colors.error} />
+            </TouchableOpacity>
+          </>
         )}
       </View>
     </View>
@@ -444,6 +449,16 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   favBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: spacing.borderRadius.lg,
+    backgroundColor: 'rgba(242, 202, 80, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  editBtn: {
     width: 52,
     height: 52,
     borderRadius: spacing.borderRadius.lg,

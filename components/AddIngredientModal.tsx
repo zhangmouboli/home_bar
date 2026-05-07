@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
@@ -11,6 +11,8 @@ interface AddIngredientModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (input: { name: string; nameEn?: string; category: IngredientCategory }) => void;
+  title?: string;
+  initialValues?: { name: string; nameEn?: string; category: IngredientCategory };
 }
 
 const categoryOptions: { key: IngredientCategory; label: string }[] = [
@@ -24,18 +26,32 @@ const categoryOptions: { key: IngredientCategory; label: string }[] = [
   { key: 'other', label: '其他' },
 ];
 
-export default function AddIngredientModal({ visible, onClose, onSave }: AddIngredientModalProps) {
+export default function AddIngredientModal({ visible, onClose, onSave, title, initialValues }: AddIngredientModalProps) {
   const [name, setName] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [category, setCategory] = useState<IngredientCategory>('other');
+
+  useEffect(() => {
+    if (visible && initialValues) {
+      setName(initialValues.name);
+      setNameEn(initialValues.nameEn || '');
+      setCategory(initialValues.category);
+    } else if (visible) {
+      setName('');
+      setNameEn('');
+      setCategory('other');
+    }
+  }, [visible, initialValues]);
 
   const handleSave = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
     onSave({ name: trimmed, nameEn: nameEn.trim() || undefined, category });
-    setName('');
-    setNameEn('');
-    setCategory('other');
+    if (!initialValues) {
+      setName('');
+      setNameEn('');
+      setCategory('other');
+    }
   };
 
   return (
@@ -43,7 +59,7 @@ export default function AddIngredientModal({ visible, onClose, onSave }: AddIngr
       <View style={styles.overlay}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.title}>添加自定义材料</Text>
+            <Text style={styles.title}>{title || '添加自定义材料'}</Text>
             <TouchableOpacity onPress={onClose}>
               <MaterialIcons name="close" size={24} color={colors.textMuted} />
             </TouchableOpacity>

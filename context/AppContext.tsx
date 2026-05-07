@@ -44,7 +44,9 @@ type Action =
   | { type: 'ADD_CUSTOM_INGREDIENT'; payload: Ingredient }
   | { type: 'REMOVE_CUSTOM_INGREDIENT'; payload: string }
   | { type: 'ADD_CUSTOM_COCKTAIL'; payload: Cocktail }
-  | { type: 'REMOVE_CUSTOM_COCKTAIL'; payload: string };
+  | { type: 'REMOVE_CUSTOM_COCKTAIL'; payload: string }
+  | { type: 'UPDATE_CUSTOM_INGREDIENT'; payload: { id: string } & Partial<Ingredient> }
+  | { type: 'UPDATE_CUSTOM_COCKTAIL'; payload: { id: string } & Partial<Cocktail> };
 
 const initialState: AppState = {
   ownedIngredientIds: defaultOwned,
@@ -135,8 +137,30 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'ADD_CUSTOM_COCKTAIL':
       return { ...state, customCocktails: [...state.customCocktails, action.payload] };
-    case 'REMOVE_CUSTOM_COCKTAIL':
-      return { ...state, customCocktails: state.customCocktails.filter((c) => c.id !== action.payload) };
+    case 'REMOVE_CUSTOM_COCKTAIL': {
+      const cocktailId = action.payload;
+      return {
+        ...state,
+        customCocktails: state.customCocktails.filter((c) => c.id !== cocktailId),
+        favoriteCocktailIds: state.favoriteCocktailIds.filter((fid) => fid !== cocktailId),
+        recentViewedCocktailIds: state.recentViewedCocktailIds.filter((rid) => rid !== cocktailId),
+        madeCocktailIds: state.madeCocktailIds.filter((mid) => mid !== cocktailId),
+      };
+    }
+    case 'UPDATE_CUSTOM_INGREDIENT': {
+      const { id, ...updates } = action.payload;
+      return {
+        ...state,
+        customIngredients: state.customIngredients.map((i) => i.id === id ? { ...i, ...updates } : i),
+      };
+    }
+    case 'UPDATE_CUSTOM_COCKTAIL': {
+      const { id, ...updates } = action.payload;
+      return {
+        ...state,
+        customCocktails: state.customCocktails.map((c) => c.id === id ? { ...c, ...updates } : c),
+      };
+    }
     default:
       return state;
   }
@@ -163,6 +187,8 @@ interface AppContextValue {
   removeCustomIngredient: (id: string) => void;
   addCustomCocktail: (cocktail: Cocktail) => void;
   removeCustomCocktail: (id: string) => void;
+  updateCustomIngredient: (id: string, input: Partial<Ingredient>) => void;
+  updateCustomCocktail: (id: string, input: Partial<Cocktail>) => void;
 }
 
 export const AppContext = createContext<AppContextValue | null>(null);
@@ -245,6 +271,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeCustomIngredient = useCallback((id: string) => dispatch({ type: 'REMOVE_CUSTOM_INGREDIENT', payload: id }), []);
   const addCustomCocktail = useCallback((cocktail: Cocktail) => dispatch({ type: 'ADD_CUSTOM_COCKTAIL', payload: cocktail }), []);
   const removeCustomCocktail = useCallback((id: string) => dispatch({ type: 'REMOVE_CUSTOM_COCKTAIL', payload: id }), []);
+  const updateCustomIngredient = useCallback((id: string, input: Partial<Ingredient>) => dispatch({ type: 'UPDATE_CUSTOM_INGREDIENT', payload: { id, ...input } }), []);
+  const updateCustomCocktail = useCallback((id: string, input: Partial<Cocktail>) => dispatch({ type: 'UPDATE_CUSTOM_COCKTAIL', payload: { id, ...input } }), []);
 
   const allIngredients = useMemo(() => [...mockIngredients, ...state.customIngredients], [state.customIngredients]);
   const allCocktails = useMemo(() => [...mockCocktails, ...state.customCocktails], [state.customCocktails]);
@@ -272,6 +300,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         removeCustomIngredient,
         addCustomCocktail,
         removeCustomCocktail,
+        updateCustomIngredient,
+        updateCustomCocktail,
       }}
     >
       {children}

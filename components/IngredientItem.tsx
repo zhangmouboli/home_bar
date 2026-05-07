@@ -15,6 +15,7 @@ interface IngredientItemProps {
   onBuy?: () => void;
   bought?: boolean;
   onDelete?: () => void;
+  onEdit?: () => void;
 }
 
 export default function IngredientItem({
@@ -27,6 +28,7 @@ export default function IngredientItem({
   onBuy,
   bought,
   onDelete,
+  onEdit,
 }: IngredientItemProps) {
   return (
     <TouchableOpacity style={styles.row} onPress={onToggle} activeOpacity={0.7}>
@@ -55,6 +57,15 @@ export default function IngredientItem({
           size={24}
           color={owned ? colors.success : colors.outline}
         />
+      )}
+      {onEdit && (
+        <TouchableOpacity
+          style={styles.editBtn}
+          onPress={onEdit}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <MaterialIcons name="edit" size={20} color={colors.primary} />
+        </TouchableOpacity>
       )}
       {onDelete && (
         <TouchableOpacity
@@ -102,6 +113,10 @@ const styles = StyleSheet.create({
   },
   buyBtn: {
     padding: spacing.xs,
+  },
+  editBtn: {
+    padding: spacing.xs,
+    marginLeft: spacing.xs,
   },
   deleteBtn: {
     padding: spacing.xs,

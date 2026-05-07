@@ -23,6 +23,7 @@ export default function Layout() {
             <Stack.Screen name="preferences/flavors" />
             <Stack.Screen name="preferences/alcohol" />
             <Stack.Screen name="custom-recipe/new" />
+            <Stack.Screen name="custom-recipe/[id]/edit" />
           </Stack>
         </View>
       </AppProvider>
