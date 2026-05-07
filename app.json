@@ -2,7 +2,7 @@
   "expo": {
     "name": "家庭酒吧",
     "slug": "home-bar",
-    "version": "4.2.1",
+    "version": "4.2.2",
     "orientation": "portrait",
     "scheme": "home-bar",
     "icon": "./assets/icon.png",
@@ -17,11 +17,12 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.zhangmou.homebar",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#131313"
       },
-      "versionCode": 421,
+      "versionCode": 422,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -30,6 +31,12 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4e783866-506f-4b92-af32-a367b00063f6"
+      }
+    }
   }
 }

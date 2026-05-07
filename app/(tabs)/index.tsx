@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    paddingBottom: 100,
+    paddingBottom: 150,
   },
   greeting: {
     ...typography.headlineXl,

@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -38,7 +37,6 @@ const categories = [
 
 export default function CabinetScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { state, toggleIngredient, isIngredientOwned, allIngredients, addCustomIngredient, removeCustomIngredient, updateCustomIngredient } = useApp();
   const [activeCategory, setActiveCategory] = useState('all');
   const [search, setSearch] = useState('');
@@ -155,7 +153,7 @@ export default function CabinetScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBtn, { paddingBottom: Math.max(insets.bottom, 8) + 4 }]}>
+      <View style={styles.bottomBtn}>
         <TouchableOpacity style={styles.cta} onPress={() => router.push('/recommend')} activeOpacity={0.7}>
           <MaterialIcons name="auto-awesome" size={20} color={colors.background} />
           <Text style={styles.ctaText}>看看我能调什么</Text>
@@ -179,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    paddingBottom: 160,
+    paddingBottom: 190,
   },
   titleRow: {
     flexDirection: 'row',
@@ -259,13 +257,13 @@ const styles = StyleSheet.create({
   },
   bottomBtn: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
+    bottom: 0,
     paddingHorizontal: spacing.pageMargin,
-    paddingTop: 10,
-    paddingBottom: 8,
-    backgroundColor: 'rgba(19, 19, 19, 0.88)',
+    paddingVertical: 0,
+    backgroundColor: 'transparent',
+    zIndex: 30,
   },
   cta: {
     flexDirection: 'row',

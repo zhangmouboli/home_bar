@@ -1,17 +1,22 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as NavigationBar from 'expo-navigation-bar';
 import { AppProvider } from '../context/AppContext';
-import { colors } from '../theme/colors';
 
 export default function Layout() {
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    NavigationBar.setButtonStyleAsync('light').catch(() => {});
+  }, []);
+
   return (
     <SafeAreaProvider>
       <AppProvider>
-        <View style={styles.root}>
-          <StatusBar style="light" />
-          <Stack screenOptions={{ headerShown: false }}>
+        <StatusBar style="light" />
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#131313' } }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="recipes" />
             <Stack.Screen name="recipe/[id]" />
@@ -29,15 +34,7 @@ export default function Layout() {
             <Stack.Screen name="settings/terms" />
             <Stack.Screen name="settings/about" />
           </Stack>
-        </View>
       </AppProvider>
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-});
