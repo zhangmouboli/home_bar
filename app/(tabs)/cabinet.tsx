@@ -155,7 +155,7 @@ export default function CabinetScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBtn, { paddingBottom: insets.bottom + spacing.pageMargin }]}>
+      <View style={[styles.bottomBtn, { paddingBottom: Math.max(insets.bottom, 8) + 4 }]}>
         <TouchableOpacity style={styles.cta} onPress={() => router.push('/recommend')} activeOpacity={0.7}>
           <MaterialIcons name="auto-awesome" size={20} color={colors.background} />
           <Text style={styles.ctaText}>看看我能调什么</Text>
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    paddingBottom: 120,
+    paddingBottom: 160,
   },
   titleRow: {
     flexDirection: 'row',
@@ -262,10 +262,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: spacing.pageMargin,
-    backgroundColor: 'rgba(19, 19, 19, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
+    paddingHorizontal: spacing.pageMargin,
+    paddingTop: 10,
+    paddingBottom: 8,
+    backgroundColor: 'rgba(19, 19, 19, 0.88)',
   },
   cta: {
     flexDirection: 'row',

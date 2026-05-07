@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   },
   activeChip: {
     borderColor: colors.primary,
-    backgroundColor: 'rgba(242, 202, 80, 0.12)',
+    backgroundColor: 'rgba(242, 202, 80, 0.15)',
   },
   text: {
     ...typography.labelMd,

@@ -19,11 +19,11 @@ export default function GlassCard({ children, style, noPadding }: GlassCardProps
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(31, 31, 31, 0.85)',
+    backgroundColor: 'rgba(31, 31, 31, 0.78)',
     borderRadius: spacing.borderRadius.xxl,
     padding: spacing.cardPadding,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.08)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

@@ -144,6 +144,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
     marginBottom: spacing.md,
+    alignItems: 'center',
   },
   horizontalImage: {
     width: 100,
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
   },
   horizontalInfo: {
     flex: 1,
-    padding: spacing.cardPadding,
+    padding: spacing.md,
     justifyContent: 'center',
   },
   horizontalName: {

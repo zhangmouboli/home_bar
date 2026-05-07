@@ -1,4 +1,10 @@
 export const typography = {
+  logo: {
+    fontSize: 26,
+    fontWeight: '900' as const,
+    letterSpacing: 6,
+    textTransform: 'uppercase' as const,
+  },
   headlineXl: {
     fontSize: 32,
     fontWeight: '700' as const,

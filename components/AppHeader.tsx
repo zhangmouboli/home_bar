@@ -15,7 +15,7 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({
-  title = '家庭酒吧',
+  title,
   onProfilePress,
   showBack = false,
   fallbackRoute,
@@ -40,7 +40,7 @@ export default function AppHeader({
         ) : (
           <View style={styles.iconBtn} />
         )}
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.logo}>HOME BAR</Text>
         {onProfilePress ? (
           <TouchableOpacity style={styles.iconBtn} onPress={onProfilePress}>
             <View style={styles.avatar}>
@@ -72,10 +72,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: {
-    ...typography.headlineMd,
+  logo: {
+    ...typography.logo,
     color: colors.primary,
-    letterSpacing: 1,
+    textShadowColor: 'rgba(242, 202, 80, 0.35)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   avatar: {
     width: 36,
