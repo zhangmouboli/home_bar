@@ -263,9 +263,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearShoppingList = useCallback(() => dispatch({ type: 'CLEAR_SHOPPING_LIST' }), []);
   const setPreferredFlavorTags = useCallback((tags: string[]) => dispatch({ type: 'SET_PREFERRED_FLAVOR_TAGS', payload: tags }), []);
   const setPreferredAlcoholLevel = useCallback((level: AlcoholLevel) => dispatch({ type: 'SET_PREFERRED_ALCOHOL_LEVEL', payload: level }), []);
-  const isInShoppingList = (id: string) => state.shoppingListIngredientIds.includes(id);
-  const isIngredientOwned = (id: string) => state.ownedIngredientIds.includes(id);
-  const isCocktailFavorite = (id: string) => state.favoriteCocktailIds.includes(id);
+  const isInShoppingList = useCallback((id: string) => state.shoppingListIngredientIds.includes(id), [state.shoppingListIngredientIds]);
+  const isIngredientOwned = useCallback((id: string) => state.ownedIngredientIds.includes(id), [state.ownedIngredientIds]);
+  const isCocktailFavorite = useCallback((id: string) => state.favoriteCocktailIds.includes(id), [state.favoriteCocktailIds]);
 
   const addCustomIngredient = useCallback((ingredient: Ingredient) => dispatch({ type: 'ADD_CUSTOM_INGREDIENT', payload: ingredient }), []);
   const removeCustomIngredient = useCallback((id: string) => dispatch({ type: 'REMOVE_CUSTOM_INGREDIENT', payload: id }), []);
@@ -277,33 +277,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const allIngredients = useMemo(() => [...mockIngredients, ...state.customIngredients], [state.customIngredients]);
   const allCocktails = useMemo(() => [...mockCocktails, ...state.customCocktails], [state.customCocktails]);
 
+  const contextValue = useMemo(() => ({
+    state,
+    dispatch,
+    toggleIngredient,
+    toggleFavorite,
+    addRecentViewed,
+    addMadeCocktail,
+    addToShoppingList,
+    removeFromShoppingList,
+    clearShoppingList,
+    setPreferredFlavorTags,
+    setPreferredAlcoholLevel,
+    isInShoppingList,
+    isIngredientOwned,
+    isCocktailFavorite,
+    allIngredients,
+    allCocktails,
+    addCustomIngredient,
+    removeCustomIngredient,
+    addCustomCocktail,
+    removeCustomCocktail,
+    updateCustomIngredient,
+    updateCustomCocktail,
+  }), [
+    state, allIngredients, allCocktails,
+    toggleIngredient, toggleFavorite, addRecentViewed, addMadeCocktail,
+    addToShoppingList, removeFromShoppingList, clearShoppingList,
+    setPreferredFlavorTags, setPreferredAlcoholLevel,
+    isInShoppingList, isIngredientOwned, isCocktailFavorite,
+    addCustomIngredient, removeCustomIngredient, addCustomCocktail, removeCustomCocktail,
+    updateCustomIngredient, updateCustomCocktail,
+  ]);
+
   return (
-    <AppContext.Provider
-      value={{
-        state,
-        dispatch,
-        toggleIngredient,
-        toggleFavorite,
-        addRecentViewed,
-        addMadeCocktail,
-        addToShoppingList,
-        removeFromShoppingList,
-        clearShoppingList,
-        setPreferredFlavorTags,
-        setPreferredAlcoholLevel,
-        isInShoppingList,
-        isIngredientOwned,
-        isCocktailFavorite,
-        allIngredients,
-        allCocktails,
-        addCustomIngredient,
-        removeCustomIngredient,
-        addCustomCocktail,
-        removeCustomCocktail,
-        updateCustomIngredient,
-        updateCustomCocktail,
-      }}
-    >
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );
