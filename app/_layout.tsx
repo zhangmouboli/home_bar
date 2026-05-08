@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
 import { AppProvider } from '../context/AppContext';
+import { colors } from '../theme/colors';
 
 export default function Layout() {
   useEffect(() => {
@@ -16,7 +17,14 @@ export default function Layout() {
     <SafeAreaProvider>
       <AppProvider>
         <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#131313' } }}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.background },
+              animation: 'none',
+            }}
+          >
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="recipes" />
             <Stack.Screen name="recipe/[id]" />
@@ -34,6 +42,7 @@ export default function Layout() {
             <Stack.Screen name="settings/terms" />
             <Stack.Screen name="settings/about" />
           </Stack>
+        </View>
       </AppProvider>
     </SafeAreaProvider>
   );
